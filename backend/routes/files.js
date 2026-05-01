@@ -6,11 +6,31 @@
  * Files are stored in AWS S3 with AES-256 server-side encryption.
  * 
  * Endpoints:
- * - POST /api/files/upload : Upload file to S3
+ * - POST /api/files/upload : Upload file to S3 and create database record
  * - GET /api/files : List all files owned by authenticated user
- * - GET /api/files/:id/download : Get presigned download URL (15 min expiry)
+ * - GET /api/files/:id/download : Get presigned S3 download URL (15 min expiry)
  * - DELETE /api/files/:id : Delete file from S3 and database
- * - POST /api/files/:id/share : Share file with another user
+ * - POST /api/files/:id/share : Share file with another user (viewer/editor role)
+ * 
+ * Security:
+ * - S3 Server-Side Encryption: AES-256
+ * - Presigned URLs: Expire in 15 minutes
+ * - User Isolation: Users can only access their own files
+ * - Rate Limiting: Recommended on production (nginx/express-rate-limit)
+ * 
+ * File Upload Process:
+ * 1. Client sends multipart form with file in "file" field
+ * 2. Multer stores file in memory (max 500 MB)
+ * 3. Server generates unique S3 key: {userId}/{uuid}-{filename}
+ * 4. File uploaded to S3 with AES-256 encryption
+ * 5. File metadata stored in PostgreSQL
+ * 6. Metadata returned to client (201 status)
+ * 
+ * Error Handling:
+ * - 400: Bad request (missing fields, invalid role)
+ * - 401: Unauthorized (no token or expired token)
+ * - 404: Not found (file doesn't exist or doesn't belong to user)
+ * - 500: Server error (S3 or database issues)
  */
 
 const router = require('express').Router();
@@ -173,19 +193,45 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // ─── SHARE FILE ───────────────────────────────────────
+/**
+ * POST /:id/share
+ * Shares a file with another user with specific permission level
+ * 
+ * Authentication: Required (JWT token)
+ * URL params: id (file ID)
+ * 
+ * Request body:
+ * - email (string): Email of user to share with
+ * - role (string): Permission level - "viewer" (read-only) or "editor" (read/write)
+ * 
+ * Process:
+ * 1. Validates file exists and belongs to authenticated user
+ * 2. Verifies recipient user exists in database
+ * 3. Creates/updates permission record in database
+ * 4. Uses upsert (ON CONFLICT) to prevent duplicate permissions
+ * 
+ * Response: { message } on success
+ * Error codes: 
+ * - 400: Missing required fields or invalid role
+ * - 404: File not found or recipient user not found
+ * 
+ * Note: For production, add notifications to recipient user
+ */
 router.post('/:id/share', auth, async (req, res) => {
   try {
     const { email, role } = req.body;
 
+    // Validate required fields
     if (!email || !role) {
       return res.status(400).json({ error: 'email and role are required' });
     }
 
+    // Validate role is one of allowed values
     if (!['viewer', 'editor'].includes(role)) {
       return res.status(400).json({ error: 'role must be viewer or editor' });
     }
 
-    // Check file belongs to this user
+    // Check file belongs to this user (authorization)
     const { rows: [file] } = await db.query(
       'SELECT * FROM files WHERE id=$1 AND owner_id=$2',
       [req.params.id, req.user.userId]
@@ -199,7 +245,12 @@ router.post('/:id/share', auth, async (req, res) => {
     );
     if (!target) return res.status(404).json({ error: 'User not found' });
 
-    // Insert permission
+    // Prevent sharing with self
+    if (target.id === req.user.userId) {
+      return res.status(400).json({ error: 'Cannot share file with yourself' });
+    }
+
+    // Insert or update permission (upsert: update if exists, insert if not)
     await db.query(
       `INSERT INTO permissions(file_id, user_id, role)
        VALUES($1, $2, $3)
@@ -207,6 +258,7 @@ router.post('/:id/share', auth, async (req, res) => {
       [req.params.id, target.id, role]
     );
 
+    // Return success message
     res.json({ message: `File shared with ${email} as ${role}` });
   } catch (err) {
     console.error('Share error:', err.message);
