@@ -1,24 +1,57 @@
+/**
+ * LOGIN PAGE
+ * 
+ * User authentication page for logging into CloudVault.
+ * Accepts email and password, sends credentials to backend API.
+ * On successful login, stores JWT token and redirects to dashboard.
+ * 
+ * Features:
+ * - Email and password input validation
+ * - Error message display
+ * - Loading state during authentication
+ * - Redirect to registration page for new users
+ */
+
 import React, { useState } from 'react';
 import api from '../api';
 import { useNavigate, Link } from 'react-router-dom';
 import './Auth.css';
 
 export default function Login() {
+  // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Navigation hook
   const navigate = useNavigate();
 
+  /**
+   * Handle login form submission
+   * 
+   * Process:
+   * 1. Prevents default form submission
+   * 2. Sends credentials to /auth/login endpoint
+   * 3. Stores returned JWT token in localStorage
+   * 4. Redirects to /dashboard on success
+   * 5. Displays error message on failure
+   */
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
+      // Send login request with email and password
       const { data } = await api.post('/auth/login', { email, password });
+      
+      // Store JWT token in localStorage for future authenticated requests
       localStorage.setItem('token', data.token);
+      
+      // Redirect to dashboard on successful login
       navigate('/dashboard');
     } catch (err) {
+      // Display error message from API or generic message
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
       setLoading(false);

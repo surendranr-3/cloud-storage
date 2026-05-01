@@ -1,9 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import api from '../api';
-import { useNavigate } from 'react-router-dom';
-import './Dashboard.css';
-
-const FILE_ICONS = {
+/**\n * FILE MANAGEMENT DASHBOARD\n * \n * Main authenticated application interface for managing cloud storage files.\n * Provides file upload, download, deletion, sharing, and browsing capabilities.\n * \n * Features:\n * - Grid and list view switching\n * - Real-time file upload with progress tracking\n * - Drag-and-drop file upload\n * - Search and filtering\n * - File categorization by type with custom icons\n * - Storage quota tracking (50 GB limit)\n * - Multiple tabs: My Files, Shared with me, Recent\n * - File detail panel with metadata and sharing options\n * - Context menu for quick actions\n * \n * State Management:\n * - files: User's uploaded files\n * - sharedFiles: Files shared with the user\n * - uploading: Current upload state\n * - uploadProgress: Upload progress percentage\n * - selectedFile: Currently selected file for detail view\n * - view: Toggle between 'grid' and 'list' display modes\n * - tab: Active tab ('myfiles', 'shared', 'recent')\n */\n\nimport React, { useState, useEffect, useRef, useCallback } from 'react';\nimport api from '../api';\nimport { useNavigate } from 'react-router-dom';\nimport './Dashboard.css';\n\n/**\n * FILE_ICONS: Mapping of MIME types to display properties\n * Each file type has: icon (emoji), color (hex), and background color\n * Used to visually distinguish file types in the UI\n */\nconst FILE_ICONS = {
   'image/png': { icon: '🖼', color: '#7c3aed', bg: '#f5f3ff' },
   'image/jpeg': { icon: '🖼', color: '#7c3aed', bg: '#f5f3ff' },
   'image/gif': { icon: '🖼', color: '#7c3aed', bg: '#f5f3ff' },

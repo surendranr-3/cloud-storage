@@ -32,6 +32,11 @@
   --mono: 'DM Mono', monospace;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -50,3 +55,26 @@ a:hover { text-decoration: underline; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+/* ─── MOBILE RESPONSIVE ──────────────────────────────── */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  button, input {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+}

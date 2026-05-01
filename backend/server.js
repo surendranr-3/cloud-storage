@@ -1,27 +1,39 @@
+/**
+ * BACKEND SERVER - Main Express Application
+ * 
+ * This file initializes the Express server with middleware configuration and route setup.
+ * It handles CORS policy, JSON parsing, and connects all API endpoints.
+ * 
+ * Environment: Uses .env for configuration (PORT, JWT_SECRET, DB_URL, AWS credentials)
+ * Port: Default 5000 if not specified
+ */
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware setup
+app.use(cors()); // Enable Cross-Origin Resource Sharing
+app.use(express.json()); // Parse incoming JSON payloads
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
-// Routes
-const authRoutes = require('./routes/auth');
-const fileRoutes = require('./routes/files');        // ← add this
+// Route imports and registration
+const authRoutes = require('./routes/auth'); // Authentication endpoints (login, register)
+const fileRoutes = require('./routes/files'); // File management endpoints (upload, download, delete, share)
 
-app.use('/api/auth', authRoutes);
-app.use('/api/files', fileRoutes);                   // ← add this
+app.use('/api/auth', authRoutes); // Mount auth routes at /api/auth
+app.use('/api/files', fileRoutes); // Mount file routes at /api/files
 
-// S3 test (you can remove this now)
+// Test S3 connection on startup
 const { ListBucketsCommand } = require('@aws-sdk/client-s3');
 const s3 = require('./s3');
 s3.send(new ListBucketsCommand({}))
   .then(data => console.log('✅ S3 connected! Buckets:', data.Buckets.map(b => b.Name)))
   .catch(err => console.error('❌ S3 error:', err.message));
 
+// Start server
 app.listen(process.env.PORT || 5000, () => {
   console.log(`Server running on port ${process.env.PORT || 5000}`);
 });

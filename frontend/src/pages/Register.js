@@ -1,26 +1,69 @@
+/**
+ * REGISTRATION PAGE
+ * 
+ * New user account creation page for CloudVault.
+ * Collects name, email, and password from user.
+ * Validates password length before submission.
+ * On successful registration, redirects to login page.
+ * 
+ * Features:
+ * - Three-field form (name, email, password)
+ * - Client-side password validation (min 6 characters)
+ * - Error message display
+ * - Loading state during registration
+ * - Redirect to login page after successful registration
+ */
+
 import React, { useState } from 'react';
 import api from '../api';
 import { useNavigate, Link } from 'react-router-dom';
 import './Auth.css';
 
 export default function Register() {
+  // Form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Navigation hook
   const navigate = useNavigate();
 
+  /**
+   * Handle registration form submission
+   * 
+   * Process:
+   * 1. Prevents default form submission
+   * 2. Validates password length (minimum 6 characters)
+   * 3. Sends registration request to /auth/register
+   * 4. Redirects to /login on success for user to login
+   * 5. Displays error message on failure
+   */
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
-    setLoading(true); setError('');
+    
+    // Client-side validation: password must be at least 6 characters
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
     try {
+      // Send registration request with name, email, and password
       await api.post('/auth/register', { name, email, password });
+      
+      // Redirect to login page to authenticate with new account
       navigate('/login');
     } catch (err) {
+      // Display error message from API or generic message
       setError(err.response?.data?.error || 'Registration failed.');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

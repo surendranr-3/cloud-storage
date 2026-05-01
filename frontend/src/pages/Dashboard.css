@@ -753,3 +753,460 @@
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── MOBILE RESPONSIVE ──────────────────────────────── */
+
+/* Tablets and smaller desktops */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 180px;
+    padding: 0.75rem 0.5rem;
+  }
+
+  .topbar-name {
+    font-size: 15px;
+  }
+
+  .main-content {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .detail-panel {
+    width: 280px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  /* Hide sidebar on tablets */
+  .sidebar {
+    display: none;
+  }
+
+  .dash-body {
+    flex-direction: column-reverse;
+  }
+
+  /* Adjust topbar for smaller screens */
+  .topbar {
+    padding: 0 1rem;
+    gap: 0.75rem;
+    height: 50px;
+  }
+
+  .topbar-brand {
+    width: auto;
+  }
+
+  .topbar-search {
+    max-width: 100%;
+    display: none;
+  }
+
+  .topbar-right {
+    gap: 8px;
+  }
+
+  .upload-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .upload-btn span:last-child {
+    display: none;
+  }
+
+  /* Main content adjustments */
+  .main-content {
+    padding: 1rem 1rem;
+    overflow-y: auto;
+  }
+
+  .content-header {
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .content-title {
+    font-size: 18px;
+  }
+
+  .view-toggle {
+    order: 3;
+    width: 100%;
+  }
+
+  /* Responsive file grid */
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .fc-thumb {
+    height: 80px;
+  }
+
+  .fc-icon {
+    font-size: 2rem;
+  }
+
+  .fc-body {
+    padding: 8px 10px;
+  }
+
+  .fc-name {
+    font-size: 12px;
+  }
+
+  .fc-meta {
+    font-size: 10px;
+  }
+
+  /* List view responsive */
+  .list-header,
+  .list-row {
+    grid-template-columns: 1fr 80px;
+  }
+
+  .list-header {
+    padding: 8px 12px;
+  }
+
+  .list-row {
+    padding: 8px 12px;
+  }
+
+  .lr-size,
+  .lr-date {
+    display: none;
+  }
+
+  .lh-actions {
+    text-align: right;
+  }
+
+  .lr-actions {
+    gap: 4px;
+  }
+
+  .la-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  /* Detail panel responsive */
+  .detail-panel {
+    width: 100%;
+    max-height: 50vh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding: 1rem;
+  }
+
+  .detail-panel.open {
+    order: -1;
+  }
+
+  /* Empty state adjustments */
+  .empty-state {
+    padding: 3rem 1rem;
+  }
+
+  .empty-icon {
+    font-size: 2.5rem;
+  }
+
+  .empty-title {
+    font-size: 16px;
+  }
+
+  .empty-sub {
+    font-size: 13px;
+  }
+
+  /* Toast position adjustment */
+  .toast {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    transform: none;
+  }
+
+  /* Upload progress bar */
+  .upload-progress-bar {
+    margin-bottom: 1rem;
+  }
+
+  .upb-name {
+    font-size: 12px;
+  }
+
+  .upb-pct {
+    font-size: 11px;
+    min-width: 28px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .topbar {
+    height: 48px;
+    padding: 0 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .topbar-brand {
+    width: auto;
+    gap: 6px;
+  }
+
+  .topbar-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .topbar-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .topbar-search {
+    display: none;
+  }
+
+  .upload-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  .upload-btn span {
+    display: none;
+  }
+
+  .upload-btn::before {
+    content: "📤";
+    font-size: 18px;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 11px;
+  }
+
+  .logout-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Main content */
+  .main-content {
+    padding: 0.75rem;
+  }
+
+  .content-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .content-header-left {
+    width: 100%;
+  }
+
+  .content-title {
+    font-size: 16px;
+  }
+
+  .content-count {
+    font-size: 12px;
+  }
+
+  .view-toggle {
+    width: 100%;
+  }
+
+  /* Responsive grid for mobile */
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+
+  .file-card {
+    border-radius: 8px;
+  }
+
+  .fc-thumb {
+    height: 70px;
+  }
+
+  .fc-icon {
+    font-size: 1.8rem;
+  }
+
+  .fc-body {
+    padding: 6px 8px;
+  }
+
+  .fc-name {
+    font-size: 11px;
+  }
+
+  .fc-meta {
+    font-size: 9px;
+  }
+
+  .fc-actions {
+    top: 6px;
+    right: 6px;
+  }
+
+  .fca-btn {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* List view for mobile */
+  .list-header,
+  .list-row {
+    grid-template-columns: 1fr;
+  }
+
+  .list-header {
+    display: none;
+  }
+
+  .list-row {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .lr-filename {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .lr-size,
+  .lr-date {
+    display: block;
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .lr-actions {
+    width: 100%;
+    gap: 4px;
+  }
+
+  .la-btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  /* Detail panel full screen on mobile */
+  .detail-panel {
+    width: 100%;
+    max-height: 60vh;
+    border: none;
+    border-top: 1px solid var(--border);
+    padding: 0.75rem;
+  }
+
+  .dp-section-title {
+    font-size: 10px;
+  }
+
+  .dp-btn {
+    padding: 10px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  .share-input,
+  .share-select {
+    min-height: 40px;
+  }
+
+  /* Empty state for mobile */
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+
+  .empty-icon {
+    font-size: 2rem;
+  }
+
+  .empty-title {
+    font-size: 14px;
+  }
+
+  .empty-sub {
+    font-size: 12px;
+  }
+
+  .empty-upload-btn {
+    min-height: 40px;
+    padding: 10px 16px;
+  }
+
+  /* Toast adjustments */
+  .toast {
+    bottom: 1rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    white-space: normal;
+    padding: 12px 16px;
+  }
+
+  /* Upload progress bar */
+  .upload-progress-bar {
+    padding: 8px 12px;
+    margin-bottom: 0.75rem;
+  }
+
+  .upb-left {
+    gap: 8px;
+  }
+
+  .upb-name {
+    font-size: 11px;
+  }
+
+  .upb-pct {
+    font-size: 10px;
+    min-width: 24px;
+  }
+
+  /* Drag overlay text */
+  .drag-text {
+    font-size: 14px;
+  }
+
+  .drag-icon {
+    font-size: 2rem;
+  }
+
+  /* Context menu mobile */
+  .context-menu {
+    min-width: 160px;
+    max-width: 90vw;
+  }
+
+  .cm-item {
+    padding: 10px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+}
