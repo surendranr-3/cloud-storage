@@ -339,4 +339,170 @@ router.get('/shared-with-me', auth, async (req, res) => {
   }
 });
 
+/**
+ * GET /search
+ * Searches for files owned by the authenticated user
+ * 
+ * Authentication: Required
+ * Query params:
+ * - q (required): Search query (searches filename, description, etc.)
+ * - type (optional): Filter by MIME type (e.g., 'image', 'pdf', 'video')
+ * - from_date (optional): ISO date string to filter files uploaded after this date
+ * - to_date (optional): ISO date string to filter files uploaded before this date
+ * - size_from (optional): Minimum file size in bytes
+ * - size_to (optional): Maximum file size in bytes
+ * - limit (default: 50): Number of results to return
+ * - offset (default: 0): Pagination offset
+ * 
+ * Response: Array of matching file objects with total count
+ * 
+ * Example:
+ * GET /api/files/search?q=document&type=pdf&limit=20
+ */
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { q, type, from_date, to_date, size_from, size_to, limit = 50, offset = 0 } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ error: 'Search query (q) is required' });
+    }
+
+    let query = 'SELECT * FROM files WHERE owner_id=$1 AND is_version=false';
+    const params = [req.user.userId];
+    let paramIndex = 2;
+
+    // Search by filename (case-insensitive)
+    query += ` AND name ILIKE $${paramIndex}`;
+    params.push(`%${q}%`);
+    paramIndex++;
+
+    // Filter by MIME type if provided
+    if (type) {
+      if (type === 'image') {
+        query += ` AND mime_type LIKE $${paramIndex}`;
+        params.push('image%');
+      } else if (type === 'pdf') {
+        query += ` AND mime_type = $${paramIndex}`;
+        params.push('application/pdf');
+      } else if (type === 'video') {
+        query += ` AND mime_type LIKE $${paramIndex}`;
+        params.push('video%');
+      } else if (type === 'audio') {
+        query += ` AND mime_type LIKE $${paramIndex}`;
+        params.push('audio%');
+      } else if (type === 'document') {
+        query += ` AND mime_type IN ($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2})`;
+        params.push(
+          'application/pdf',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        paramIndex += 2;
+      }
+      paramIndex++;
+    }
+
+    // Filter by upload date range if provided
+    if (from_date) {
+      query += ` AND created_at >= $${paramIndex}`;
+      params.push(new Date(from_date));
+      paramIndex++;
+    }
+    if (to_date) {
+      query += ` AND created_at <= $${paramIndex}`;
+      params.push(new Date(to_date));
+      paramIndex++;
+    }
+
+    // Filter by file size range if provided
+    if (size_from) {
+      query += ` AND size_bytes >= $${paramIndex}`;
+      params.push(parseInt(size_from));
+      paramIndex++;
+    }
+    if (size_to) {
+      query += ` AND size_bytes <= $${paramIndex}`;
+      params.push(parseInt(size_to));
+      paramIndex++;
+    }
+
+    // Add sorting and pagination
+    query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    params.push(parseInt(limit), parseInt(offset));
+
+    // Execute search query
+    const { rows } = await db.query(query, params);
+
+    // Get total count for pagination
+    let countQuery = 'SELECT COUNT(*) FROM files WHERE owner_id=$1 AND is_version=false';
+    const countParams = [req.user.userId];
+    let countParamIndex = 2;
+
+    countQuery += ` AND name ILIKE $${countParamIndex}`;
+    countParams.push(`%${q}%`);
+    countParamIndex++;
+
+    if (type) {
+      if (type === 'image') {
+        countQuery += ` AND mime_type LIKE $${countParamIndex}`;
+        countParams.push('image%');
+      } else if (type === 'pdf') {
+        countQuery += ` AND mime_type = $${countParamIndex}`;
+        countParams.push('application/pdf');
+      } else if (type === 'video') {
+        countQuery += ` AND mime_type LIKE $${countParamIndex}`;
+        countParams.push('video%');
+      } else if (type === 'audio') {
+        countQuery += ` AND mime_type LIKE $${countParamIndex}`;
+        countParams.push('audio%');
+      } else if (type === 'document') {
+        countQuery += ` AND mime_type IN ($${countParamIndex}, $${countParamIndex + 1}, $${countParamIndex + 2})`;
+        countParams.push(
+          'application/pdf',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        countParamIndex += 2;
+      }
+      countParamIndex++;
+    }
+
+    if (from_date) {
+      countQuery += ` AND created_at >= $${countParamIndex}`;
+      countParams.push(new Date(from_date));
+      countParamIndex++;
+    }
+    if (to_date) {
+      countQuery += ` AND created_at <= $${countParamIndex}`;
+      countParams.push(new Date(to_date));
+      countParamIndex++;
+    }
+
+    if (size_from) {
+      countQuery += ` AND size_bytes >= $${countParamIndex}`;
+      countParams.push(parseInt(size_from));
+      countParamIndex++;
+    }
+    if (size_to) {
+      countQuery += ` AND size_bytes <= $${countParamIndex}`;
+      countParams.push(parseInt(size_to));
+      countParamIndex++;
+    }
+
+    const { rows: countResult } = await db.query(countQuery, countParams);
+    const total = parseInt(countResult[0].count);
+
+    res.json({
+      results: rows,
+      total,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      hasMore: parseInt(offset) + parseInt(limit) < total
+    });
+  } catch (err) {
+    console.error('Search error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
