@@ -1,3 +1,11 @@
+/**
+ * INDEX.CSS - MINIMAL RESET STYLESHEET
+ * 
+ * Provides basic CSS reset for consistent cross-browser rendering.
+ * Applies consistent box-sizing model to all elements.
+ * This stylesheet is imported early to ensure resets apply before App.css.
+ */
+
 *, *::before, *::after {
   box-sizing: border-box;
 }

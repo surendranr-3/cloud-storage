@@ -1,5 +1,5 @@
 /**
- * REGISTRATION PAGE
+ * REGISTRATION PAGE - MODERN DESIGN
  * 
  * New user account creation page for CloudVault.
  * Collects name, email, and password from user.
@@ -12,6 +12,8 @@
  * - Error message display
  * - Loading state during registration
  * - Redirect to login page after successful registration
+ * - Password strength indicator
+ * - Modern UI matching login page
  */
 
 import React, { useState } from 'react';
@@ -24,11 +26,29 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState('');
   
   // Navigation hook
   const navigate = useNavigate();
+
+  // Password strength calculation
+  const getPasswordStrength = (pass) => {
+    if (!pass) return 0;
+    let strength = 0;
+    if (pass.length >= 6) strength++;
+    if (pass.length >= 8) strength++;
+    if (/[A-Z]/.test(pass)) strength++;
+    if (/[0-9]/.test(pass)) strength++;
+    if (/[^A-Za-z0-9]/.test(pass)) strength++;
+    return Math.min(strength, 4);
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+  const strengthText = ['', 'Weak', 'Fair', 'Good', 'Strong'][passwordStrength];
+  const strengthColor = ['', '#ef4444', '#f59e0b', '#10b981', '#10b981'][passwordStrength];
 
   /**
    * Handle registration form submission
@@ -60,7 +80,7 @@ export default function Register() {
       navigate('/login');
     } catch (err) {
       // Display error message from API or generic message
-      setError(err.response?.data?.error || 'Registration failed.');
+      setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -68,60 +88,199 @@ export default function Register() {
 
   return (
     <div className="auth-root">
+      {/* LEFT SIDE - SAME AS LOGIN */}
       <div className="auth-left">
+        
+        <div className="auth-orb orb1" />
+        <div className="auth-orb orb2" />
+        <div className="auth-orb orb3" />
+
         <div className="auth-brand">
-          <div className="auth-brand-icon">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <path d="M14 3C8.477 3 4 7.477 4 13c0 3.09 1.408 5.857 3.632 7.723L6 24h16l-1.632-3.277A9.956 9.956 0 0024 13c0-5.523-4.477-10-10-10z" fill="white" fillOpacity="0.9"/>
-              <circle cx="10" cy="13" r="2" fill="#2563eb"/>
-              <circle cx="14" cy="10" r="2" fill="#2563eb"/>
-              <circle cx="18" cy="13" r="2" fill="#2563eb"/>
-            </svg>
+          <div className="brand-logo">
+            ☁
           </div>
-          <span className="auth-brand-name">CloudVault</span>
-        </div>
-        <div className="auth-hero">
-          <h1 className="auth-hero-title">Your files,<br/>your cloud.</h1>
-          <p className="auth-hero-sub">Join thousands of users who trust CloudVault to store, share, and manage their most important files.</p>
-          <div className="auth-stats">
-            <div className="auth-stat"><div className="auth-stat-num">50GB</div><div className="auth-stat-label">Free storage</div></div>
-            <div className="auth-stat-div"/>
-            <div className="auth-stat"><div className="auth-stat-num">256-bit</div><div className="auth-stat-label">Encryption</div></div>
-            <div className="auth-stat-div"/>
-            <div className="auth-stat"><div className="auth-stat-num">99.9%</div><div className="auth-stat-label">Uptime SLA</div></div>
+          <div className="brand-name">
+            CloudVault
           </div>
         </div>
-        <div className="auth-grid-bg"/>
+
+        <div className="hero-content">
+          <div className="hero-badge">
+            Join the Future of Cloud Storage
+          </div>
+          
+          <h1>
+            Your files,
+            <br />
+            your cloud.
+          </h1>
+          
+          <p>
+            Join thousands of users who trust CloudVault to store, 
+            share, and manage their most important files securely.
+          </p>
+
+          <div className="feature-grid">
+            <div className="feature-card">
+              <span>💾</span>
+              <div>
+                <h4>50GB Free</h4>
+                <p>Start with generous space</p>
+              </div>
+            </div>
+            
+            <div className="feature-card">
+              <span>🔒</span>
+              <div>
+                <h4>256-bit Encryption</h4>
+                <p>Military-grade security</p>
+              </div>
+            </div>
+            
+            <div className="feature-card">
+              <span>🚀</span>
+              <div>
+                <h4>Fast Uploads</h4>
+                <p>CDN optimized delivery</p>
+              </div>
+            </div>
+            
+            <div className="feature-card">
+              <span>🔄</span>
+              <div>
+                <h4>Auto Sync</h4>
+                <p>Across all devices</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
+      {/* RIGHT SIDE - REGISTRATION FORM */}
       <div className="auth-right">
-        <div className="auth-form-wrap">
-          <div className="auth-form-header">
-            <h2 className="auth-form-title">Create account</h2>
-            <p className="auth-form-sub">Get started with 50GB free storage</p>
+        
+        <div className="auth-card">
+          
+          <div className="auth-header">
+            <h2>Create account</h2>
+            <p>Get started with 50GB free storage</p>
           </div>
 
-          {error && <div className="auth-error"><span>⚠</span> {error}</div>}
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleRegister} className="auth-form">
+            
+            {/* FULL NAME */}
             <div className="field-group">
-              <label className="field-label">Full name</label>
-              <input className="field-input" type="text" placeholder="Arjun Kumar" value={name} onChange={e => setName(e.target.value)} required autoFocus/>
+              <label>Full name</label>
+              <div className={`input-wrapper ${focused === 'name' ? 'focused' : ''}`}>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onFocus={() => setFocused('name')}
+                  onBlur={() => setFocused('')}
+                  required
+                  autoFocus
+                />
+              </div>
             </div>
+
+            {/* EMAIL */}
             <div className="field-group">
-              <label className="field-label">Email address</label>
-              <input className="field-input" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required/>
+              <label>Email address</label>
+              <div className={`input-wrapper ${focused === 'email' ? 'focused' : ''}`}>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setFocused('email')}
+                  onBlur={() => setFocused('')}
+                  required
+                />
+              </div>
             </div>
+
+            {/* PASSWORD */}
             <div className="field-group">
-              <label className="field-label">Password</label>
-              <input className="field-input" type="password" placeholder="Min. 6 characters" value={password} onChange={e => setPassword(e.target.value)} required/>
+              <label>Password</label>
+              <div className={`input-wrapper ${focused === 'password' ? 'focused' : ''}`}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Min. 6 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setFocused('password')}
+                  onBlur={() => setFocused('')}
+                  required
+                />
+                <button
+                  type="button"
+                  className="show-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              
+              {/* Password strength indicator */}
+              {password && (
+                <div className="password-strength">
+                  <div className="strength-bar">
+                    <div 
+                      className="strength-fill" 
+                      style={{ 
+                        width: `${(passwordStrength / 4) * 100}%`,
+                        backgroundColor: strengthColor
+                      }}
+                    />
+                  </div>
+                  <span className="strength-text" style={{ color: strengthColor }}>
+                    {strengthText} password
+                  </span>
+                </div>
+              )}
+              
+              <div className="password-hint">
+                Use 6+ characters with letters, numbers & symbols
+              </div>
             </div>
-            <button className="auth-submit" type="submit" disabled={loading}>
-              {loading ? <span className="btn-spinner"/> : 'Create free account'}
+
+            {/* SUBMIT BUTTON */}
+            <button
+              type="submit"
+              className="submit-btn"
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="loading-wrap">
+                  <div className="spinner" />
+                  Creating account...
+                </div>
+              ) : (
+                'Create free account'
+              )}
             </button>
+
           </form>
 
-          <p className="auth-switch">Already have an account? <Link to="/login">Sign in</Link></p>
+          {/* FOOTER */}
+          <div className="auth-footer">
+            Already have an account?
+            <Link to="/login" className="register-link">
+              Sign in
+            </Link>
+          </div>
+
         </div>
       </div>
     </div>

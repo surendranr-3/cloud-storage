@@ -1,37 +1,79 @@
+/**
+ * GLOBAL STYLESHEET - APP.CSS
+ * 
+ * Defines global CSS custom properties, base styles, and responsive breakpoints.
+ * Uses modern CSS variables for maintainable theming.
+ * Includes typography, colors, shadows, and spacing system.
+ * 
+ * Color Palette:
+ * - Background: Neutral grays and off-whites
+ * - Text: Multiple levels of contrast (text, text2, text3)
+ * - Accents: Blue primary, green success, red danger, yellow warning, purple
+ * - Shadows: Multiple levels for depth (shadow, shadow-md, shadow-lg)
+ * 
+ * Responsive Design:
+ * - Tablet: max-width 768px
+ * - Mobile: max-width 480px
+ */
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
 
+/**
+ * RESET AND BOX SIZING
+ * Ensures consistent box sizing model across all elements
+ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/**
+ * CSS CUSTOM PROPERTIES (VARIABLES)
+ * Define the entire color scheme and design system
+ */
 :root {
-  --bg: #f8f7f4;
-  --surface: #ffffff;
-  --surface2: #f1f0ed;
-  --surface3: #e8e7e3;
-  --border: #e2e1dd;
-  --border2: #d0cfc9;
-  --text: #1a1a18;
-  --text2: #5c5c56;
-  --text3: #9c9b94;
-  --accent: #2563eb;
-  --accent-light: #eff6ff;
-  --accent-hover: #1d4ed8;
-  --green: #16a34a;
-  --green-light: #f0fdf4;
-  --red: #dc2626;
-  --red-light: #fef2f2;
-  --yellow: #d97706;
-  --yellow-light: #fffbeb;
-  --purple: #7c3aed;
-  --purple-light: #f5f3ff;
-  --radius: 10px;
-  --radius-lg: 14px;
+  /* ===== BACKGROUND COLORS ===== */
+  --bg: #f8f7f4;           /* Main background */
+  --surface: #ffffff;       /* Cards and surfaces */
+  --surface2: #f1f0ed;      /* Secondary background */
+  --surface3: #e8e7e3;      /* Tertiary background */
+  
+  /* ===== BORDER COLORS ===== */
+  --border: #e2e1dd;        /* Standard border */
+  --border2: #d0cfc9;       /* Secondary border */
+  
+  /* ===== TEXT COLORS ===== */
+  --text: #1a1a18;          /* Primary text */
+  --text2: #5c5c56;         /* Secondary text */
+  --text3: #9c9b94;         /* Tertiary text (muted) */
+  
+  /* ===== SEMANTIC COLORS ===== */
+  --accent: #2563eb;        /* Primary brand color (blue) */
+  --accent-light: #eff6ff;  /* Light accent background */
+  --accent-hover: #1d4ed8;  /* Darker accent on hover */
+  --green: #16a34a;         /* Success color */
+  --green-light: #f0fdf4;   /* Light success background */
+  --red: #dc2626;           /* Danger/error color */
+  --red-light: #fef2f2;     /* Light danger background */
+  --yellow: #d97706;        /* Warning color */
+  --yellow-light: #fffbeb;  /* Light warning background */
+  --purple: #7c3aed;        /* Secondary accent color */
+  --purple-light: #f5f3ff;  /* Light purple background */
+  
+  /* ===== BORDER RADIUS ===== */
+  --radius: 10px;           /* Standard border radius */
+  --radius-lg: 14px;        /* Large border radius */
+  
+  /* ===== SHADOWS ===== */
   --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
   --shadow-lg: 0 12px 32px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06);
+  
+  /* ===== TYPOGRAPHY ===== */
   --font: 'DM Sans', sans-serif;
   --mono: 'DM Mono', monospace;
 }
 
+/**
+ * HTML AND BODY BASE STYLES
+ */
 html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
@@ -46,18 +88,28 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/**
+ * ELEMENT BASE STYLES
+ */
 button { font-family: var(--font); cursor: pointer; }
 input { font-family: var(--font); }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/**
+ * SCROLLBAR STYLING
+ * Custom webkit scrollbar appearance
+ */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
-/* ─── MOBILE RESPONSIVE ──────────────────────────────── */
+/**
+ * RESPONSIVE DESIGN BREAKPOINTS
+ */
 
+/* ===== TABLET (max-width: 768px) ===== */
 @media (max-width: 768px) {
   body {
     font-size: 14px;
@@ -68,6 +120,7 @@ a:hover { text-decoration: underline; }
   }
 }
 
+/* ===== MOBILE (max-width: 480px) ===== */
 @media (max-width: 480px) {
   body {
     font-size: 13px;

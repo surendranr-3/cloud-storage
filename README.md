@@ -10,6 +10,7 @@ A full‑stack Google Drive clone with React, Node.js, AWS S3, and RDS.
 ## ✨ Features
 
 ### Core Features ✅
+
 - User registration & login (JWT authentication, 7-day token expiry)
 - Upload, download, delete files
 - File sharing with viewer/editor roles
@@ -19,6 +20,7 @@ A full‑stack Google Drive clone with React, Node.js, AWS S3, and RDS.
 - S3 Server-Side Encryption (AES-256)
 
 ### Enterprise Features 🏆 (NEW)
+
 - **Folder Hierarchy**: Create nested folders with parent-child relationships
 - **Version History**: Automatic version tracking - restore any previous file version
 - **Advanced Search**: Search files by name, type, date range, and size
@@ -83,44 +85,50 @@ npm start   # Opens at http://localhost:3000
 ## 🔌 API Endpoints
 
 ### 🔐 Authentication
-| Method | Endpoint                 | Auth | Description         |
-| ------ | ------------------------ | ---- | ------------------- |
-| POST   | /api/auth/register       | No   | Create account      |
-| POST   | /api/auth/login          | No   | Login → JWT         |
+
+| Method | Endpoint           | Auth | Description    |
+| ------ | ------------------ | ---- | -------------- |
+| POST   | /api/auth/register | No   | Create account |
+| POST   | /api/auth/login    | No   | Login → JWT    |
 
 ### 📁 Files (Core)
-| Method | Endpoint                 | Auth | Description         |
-| ------ | ------------------------ | ---- | ------------------- |
-| GET    | /api/files               | Yes  | List user files     |
-| POST   | /api/files/upload        | Yes  | Upload (multipart)  |
-| GET    | /api/files/:id/download  | Yes  | Get presigned URL   |
-| DELETE | /api/files/:id           | Yes  | Delete file         |
-| POST   | /api/files/:id/share     | Yes  | Share file          |
-| GET    | /api/files/shared-with-me| Yes  | Files shared with me|
+
+| Method | Endpoint                  | Auth | Description          |
+| ------ | ------------------------- | ---- | -------------------- |
+| GET    | /api/files                | Yes  | List user files      |
+| POST   | /api/files/upload         | Yes  | Upload (multipart)   |
+| GET    | /api/files/:id/download   | Yes  | Get presigned URL    |
+| DELETE | /api/files/:id            | Yes  | Delete file          |
+| POST   | /api/files/:id/share      | Yes  | Share file           |
+| GET    | /api/files/shared-with-me | Yes  | Files shared with me |
 
 ### 📁 Folders (NEW)
-| Method | Endpoint                 | Auth | Description         |
-| ------ | ------------------------ | ---- | ------------------- |
-| POST   | /api/folders             | Yes  | Create folder       |
-| GET    | /api/folders             | Yes  | List folders        |
-| GET    | /api/folders/:id/files   | Yes  | List files in folder|
-| GET    | /api/folders/:id/children| Yes  | List subfolders     |
-| PUT    | /api/folders/:id         | Yes  | Rename/move folder  |
-| DELETE | /api/folders/:id         | Yes  | Delete folder & contents|
+
+| Method | Endpoint                  | Auth | Description              |
+| ------ | ------------------------- | ---- | ------------------------ |
+| POST   | /api/folders              | Yes  | Create folder            |
+| GET    | /api/folders              | Yes  | List folders             |
+| GET    | /api/folders/:id/files    | Yes  | List files in folder     |
+| GET    | /api/folders/:id/children | Yes  | List subfolders          |
+| PUT    | /api/folders/:id          | Yes  | Rename/move folder       |
+| DELETE | /api/folders/:id          | Yes  | Delete folder & contents |
 
 ### 📜 Version History (NEW)
-| Method | Endpoint                           | Auth | Description         |
-| ------ | ---------------------------------- | ---- | ------------------- |
-| GET    | /api/versions/:fileId/versions     | Yes  | List all versions   |
-| GET    | /api/versions/:fileId/versions/:versionId | Yes | Download version |
-| POST   | /api/versions/:fileId/restore/:versionId  | Yes | Restore version |
+
+| Method | Endpoint                                  | Auth | Description       |
+| ------ | ----------------------------------------- | ---- | ----------------- |
+| GET    | /api/versions/:fileId/versions            | Yes  | List all versions |
+| GET    | /api/versions/:fileId/versions/:versionId | Yes  | Download version  |
+| POST   | /api/versions/:fileId/restore/:versionId  | Yes  | Restore version   |
 
 ### 🔍 Search (NEW)
-| Method | Endpoint                 | Auth | Description         |
-| ------ | ------------------------ | ---- | ------------------- |
-| GET    | /api/files/search?q=...  | Yes  | Search files by name, type, date, size |
+
+| Method | Endpoint                | Auth | Description                            |
+| ------ | ----------------------- | ---- | -------------------------------------- |
+| GET    | /api/files/search?q=... | Yes  | Search files by name, type, date, size |
 
 ### 📚 API Documentation (NEW)
+
 - **Endpoint**: `http://localhost:5000/api-docs`
 - **Format**: Interactive Swagger UI with OpenAPI 3.0 specification
 - **Features**: Try-it-out functionality, parameter validation, response examples
@@ -163,6 +171,7 @@ cloud-storage/
 ## 🗄️ Database Schema (NEW)
 
 ### Users Table
+
 ```sql
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
@@ -174,6 +183,7 @@ CREATE TABLE users (
 ```
 
 ### Files Table
+
 ```sql
 CREATE TABLE files (
   id SERIAL PRIMARY KEY,
@@ -193,6 +203,7 @@ CREATE TABLE files (
 ```
 
 ### Folders Table (NEW)
+
 ```sql
 CREATE TABLE folders (
   id SERIAL PRIMARY KEY,
@@ -208,6 +219,7 @@ CREATE TABLE folders (
 ```
 
 ### File Versions Table (NEW)
+
 ```sql
 CREATE TABLE file_versions (
   id SERIAL PRIMARY KEY,
@@ -224,6 +236,7 @@ CREATE TABLE file_versions (
 ```
 
 ### Permissions Table
+
 ```sql
 CREATE TABLE permissions (
   id SERIAL PRIMARY KEY,
@@ -257,3 +270,73 @@ psql postgresql://user:password@host:5432/cloudvault < migrations/001_add_folder
 - **Storage** – S3 bucket (with AES-256 encryption)
 - **API Docs** – Swagger UI at `/api-docs` (NEW)
 - **Monitoring** – Future integration with CloudWatch (logs, metrics)
+
+```
+cloud-storage
+├─ backend
+│  ├─ .env
+│  ├─ .env.example
+│  ├─ db.js
+│  ├─ middleware
+│  │  └─ auth.js
+│  ├─ migrations
+│  │  └─ 001_add_folders_and_versions.sql
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ routes
+│  │  ├─ auth.js
+│  │  ├─ files.js
+│  │  ├─ folders.js
+│  │  └─ versions.js
+│  ├─ s3.js
+│  ├─ server.js
+│  └─ swagger.js
+├─ ENTERPRISE_FEATURES_SUMMARY.md
+├─ frontend
+│  ├─ .env.example
+│  ├─ build
+│  │  ├─ asset-manifest.json
+│  │  ├─ favicon.ico
+│  │  ├─ index.html
+│  │  ├─ logo192.png
+│  │  ├─ logo512.png
+│  │  ├─ manifest.json
+│  │  ├─ robots.txt
+│  │  └─ static
+│  │     ├─ css
+│  │     │  ├─ main.fc5f11b3.css
+│  │     │  └─ main.fc5f11b3.css.map
+│  │     └─ js
+│  │        ├─ main.76ba6294.js
+│  │        ├─ main.76ba6294.js.LICENSE.txt
+│  │        └─ main.76ba6294.js.map
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ public
+│  │  ├─ favicon.ico
+│  │  ├─ index.html
+│  │  ├─ logo192.png
+│  │  ├─ logo512.png
+│  │  ├─ manifest.json
+│  │  └─ robots.txt
+│  ├─ README.md
+│  └─ src
+│     ├─ api.js
+│     ├─ App.css
+│     ├─ App.js
+│     ├─ App.test.js
+│     ├─ components
+│     ├─ index.css
+│     ├─ index.js
+│     ├─ logo.svg
+│     ├─ pages
+│     │  ├─ Auth.css
+│     │  ├─ Dashboard.css
+│     │  ├─ Dashboard.js
+│     │  ├─ Login.js
+│     │  └─ Register.js
+│     ├─ reportWebVitals.js
+│     └─ setupTests.js
+└─ README.md
+
+```

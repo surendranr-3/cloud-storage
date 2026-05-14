@@ -1,494 +1,754 @@
-/**\n * FILE MANAGEMENT DASHBOARD\n * \n * Main authenticated application interface for managing cloud storage files.\n * Provides file upload, download, deletion, sharing, and browsing capabilities.\n * \n * Features:\n * - Grid and list view switching\n * - Real-time file upload with progress tracking\n * - Drag-and-drop file upload\n * - Search and filtering\n * - File categorization by type with custom icons\n * - Storage quota tracking (50 GB limit)\n * - Multiple tabs: My Files, Shared with me, Recent\n * - File detail panel with metadata and sharing options\n * - Context menu for quick actions\n * \n * State Management:\n * - files: User's uploaded files\n * - sharedFiles: Files shared with the user\n * - uploading: Current upload state\n * - uploadProgress: Upload progress percentage\n * - selectedFile: Currently selected file for detail view\n * - view: Toggle between 'grid' and 'list' display modes\n * - tab: Active tab ('myfiles', 'shared', 'recent')\n */\n\nimport React, { useState, useEffect, useRef, useCallback } from 'react';\nimport api from '../api';\nimport { useNavigate } from 'react-router-dom';\nimport './Dashboard.css';\n\n/**\n * FILE_ICONS: Mapping of MIME types to display properties\n * Each file type has: icon (emoji), color (hex), and background color\n * Used to visually distinguish file types in the UI\n */\nconst FILE_ICONS = {
-  'image/png': { icon: '🖼', color: '#7c3aed', bg: '#f5f3ff' },
-  'image/jpeg': { icon: '🖼', color: '#7c3aed', bg: '#f5f3ff' },
-  'image/gif': { icon: '🖼', color: '#7c3aed', bg: '#f5f3ff' },
-  'image/webp': { icon: '🖼', color: '#7c3aed', bg: '#f5f3ff' },
-  'application/pdf': { icon: '📄', color: '#dc2626', bg: '#fef2f2' },
-  'video/mp4': { icon: '🎬', color: '#d97706', bg: '#fffbeb' },
-  'video/webm': { icon: '🎬', color: '#d97706', bg: '#fffbeb' },
-  'audio/mpeg': { icon: '🎵', color: '#059669', bg: '#f0fdf4' },
-  'application/zip': { icon: '📦', color: '#374151', bg: '#f9fafb' },
-  'application/x-zip-compressed': { icon: '📦', color: '#374151', bg: '#f9fafb' },
-  'text/plain': { icon: '📝', color: '#2563eb', bg: '#eff6ff' },
-  'text/csv': { icon: '📊', color: '#059669', bg: '#f0fdf4' },
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': { icon: '📊', color: '#059669', bg: '#f0fdf4' },
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { icon: '📝', color: '#2563eb', bg: '#eff6ff' },
+/**
+ * DASHBOARD PAGE - MAIN FILE MANAGEMENT INTERFACE
+ * 
+ * Primary user interface for CloudVault file management.
+ * Features include uploading, downloading, deleting, and sharing files.
+ * Displays files in grid or list view with sorting and filtering.
+ * Supports drag-and-drop file uploads.
+ * Shows storage usage with visual progress bar (0-50GB limit).
+ * Displays shared files with owner information.
+ * 
+ * Key Features:
+ * - Multiple view modes: My Files, Shared Files, Recent Files
+ * - Grid/List view toggle for different layouts
+ * - Search/filter files by name
+ * - Drag-and-drop upload capability
+ * - File sharing with role-based access (Viewer/Editor)
+ * - Download files with signed URLs
+ * - Delete files with confirmation
+ * - Storage usage tracking and visualization
+ * - User profile menu with logout option
+ */
+
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from 'react';
+
+import api from '../api';
+import { useNavigate } from 'react-router-dom';
+import './Dashboard.css';
+
+/**
+ * FILE ICONS AND STYLING
+ * 
+ * Maps MIME types to display icons, colors, and background colors.
+ * Each file type gets a unique emoji icon and color scheme for easy identification.
+ * Used when rendering file cards in the dashboard.
+ */
+const FILE_ICONS = {
+  'image/png': {
+    icon: '🖼',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+  },
+  'image/jpeg': {
+    icon: '🖼',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+  },
+  'image/gif': {
+    icon: '🖼',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+  },
+  'image/webp': {
+    icon: '🖼',
+    color: '#7c3aed',
+    bg: '#f5f3ff',
+  },
+  'application/pdf': {
+    icon: '📄',
+    color: '#dc2626',
+    bg: '#fef2f2',
+  },
+  'video/mp4': {
+    icon: '🎬',
+    color: '#d97706',
+    bg: '#fffbeb',
+  },
+  'video/webm': {
+    icon: '🎬',
+    color: '#d97706',
+    bg: '#fffbeb',
+  },
+  'audio/mpeg': {
+    icon: '🎵',
+    color: '#059669',
+    bg: '#f0fdf4',
+  },
+  'application/zip': {
+    icon: '📦',
+    color: '#374151',
+    bg: '#f9fafb',
+  },
+  'text/plain': {
+    icon: '📝',
+    color: '#2563eb',
+    bg: '#eff6ff',
+  },
 };
 
-const getFileStyle = (mime) => FILE_ICONS[mime] || { icon: '📁', color: '#6b7280', bg: '#f9fafb' };
+/**
+ * Get file styling (icon, color, background) based on MIME type
+ * Returns default styling if MIME type not found in FILE_ICONS
+ */
+const getFileStyle = (mime) =>
+  FILE_ICONS[mime] || {
+    icon: '📁',
+    color: '#6b7280',
+    bg: '#f9fafb',
+  };
 
-const formatSize = (bytes) => {
+/**
+ * Format bytes to human-readable file size
+ * Converts bytes to B, KB, MB, or GB depending on size
+ * Example: 1024 => "1.0 KB", 1048576 => "1.0 MB"
+ */
+const formatSize = (bytes = 0) => {
   const b = parseInt(bytes);
-  if (b < 1024) return b + ' B';
-  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
-  if (b < 1024 * 1024 * 1024) return (b / (1024 * 1024)).toFixed(1) + ' MB';
-  return (b / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+
+  if (b < 1024) return `${b} B`;
+
+  if (b < 1024 * 1024) {
+    return `${(b / 1024).toFixed(1)} KB`;
+  }
+
+  if (b < 1024 * 1024 * 1024) {
+    return `${(
+      b /
+      (1024 * 1024)
+    ).toFixed(1)} MB`;
+  }
+
+  return `${(
+    b /
+    (1024 * 1024 * 1024)
+  ).toFixed(2)} GB`;
 };
 
-const formatDate = (d) => {
-  const date = new Date(d);
+/**
+ * Format date to relative time display
+ * Shows "Just now", "5m ago", "2h ago", etc.
+ * Falls back to formatted date for older files
+ */
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
   const now = new Date();
+
   const diff = (now - date) / 1000;
+
   if (diff < 60) return 'Just now';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  if (diff < 3600) {
+    return `${Math.floor(diff / 60)}m ago`;
+  }
+
+  if (diff < 86400) {
+    return `${Math.floor(diff / 3600)}h ago`;
+  }
+
+  if (diff < 604800) {
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+
+  return date.toLocaleDateString(
+    'en-IN',
+    {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }
+  );
 };
 
-const getUserInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
+/**
+ * Extract user initials from full name
+ * Example: "John Doe" => "JD"
+ * Used for user avatar in profile menu
+ */
+const getUserInitials = (name) => {
+  if (!name) return 'U';
+
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 export default function Dashboard() {
-  const [files, setFiles] = useState([]);
-  const [sharedFiles, setSharedFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadingName, setUploadingName] = useState('');
-  const [view, setView] = useState('grid'); // grid | list
-  const [tab, setTab] = useState('myfiles'); // myfiles | shared | recent
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [detailPanel, setDetailPanel] = useState(false);
-  const [versions, setVersions] = useState([]);
-  const [shareEmail, setShareEmail] = useState('');
-  const [shareRole, setShareRole] = useState('viewer');
-  const [shareMsg, setShareMsg] = useState('');
-  const [search, setSearch] = useState('');
-  const [toast, setToast] = useState(null);
-  const [dragging, setDragging] = useState(false);
-  const [contextMenu, setContextMenu] = useState(null);
-  const [userName, setUserName] = useState('User');
-  const fileInputRef = useRef();
+  // Navigation hook for redirecting to login on logout
   const navigate = useNavigate();
+  
+  // Reference to hidden file input element for file selection
+  const fileInputRef = useRef();
 
-  const showToast = (msg, type = 'success') => {
+  /* ========== FILE AND VIEW STATE ========== */
+  
+  // Array of files owned by current user
+  const [files, setFiles] = useState([]);
+  
+  // Array of files shared with current user by others
+  const [sharedFiles, setSharedFiles] = useState([]);
+  
+  // Current view mode: 'grid' or 'list'
+  const [view, setView] = useState('grid');
+  
+  // Current tab/filter: 'myfiles', 'shared', or 'recent'
+  const [tab, setTab] = useState('myfiles');
+  
+  // Search query for filtering files by name
+  const [search, setSearch] = useState('');
+
+  /* ========== UPLOAD STATE ========== */
+  
+  // Whether a file upload is currently in progress
+  const [uploading, setUploading] = useState(false);
+  
+  // Upload progress percentage (0-100)
+  const [uploadProgress, setUploadProgress] = useState(0);
+  
+  // Name of file currently being uploaded (for display)
+  const [uploadingName, setUploadingName] = useState('');
+
+  /* ========== DRAG AND DROP STATE ========== */
+  
+  // Whether files are currently being dragged over the area
+  const [dragging, setDragging] = useState(false);
+
+  /* ========== NOTIFICATION STATE ========== */
+  
+  // Toast notification: { msg: string, type: 'success'|'error' }
+  const [toast, setToast] = useState(null);
+
+  /* ========== USER STATE ========== */
+  
+  // Current logged-in user's name
+  const [userName, setUserName] = useState('User');
+  
+  // Whether profile dropdown menu is open
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  /* ========== FILE SHARING STATE ========== */
+  
+  // Whether the share modal is open
+  const [showShareModal, setShowShareModal] = useState(false);
+  
+  // Email address to share file with
+  const [shareEmail, setShareEmail] = useState('');
+  
+  // Access role for shared file: 'viewer' or 'editor'
+  const [shareRole, setShareRole] = useState('viewer');
+  
+  // File object currently being shared
+  const [sharingFile, setSharingFile] = useState(null);
+  
+  // Whether a share operation is in progress
+  const [sharingInProgress, setSharingInProgress] = useState(false);
+
+  /**
+   * Show temporary notification toast
+   * Auto-dismisses after 3 seconds
+   * @param {string} msg - Message to display
+   * @param {string} type - 'success' or 'error' for styling
+   */
+  const showToast = useCallback((msg, type = 'success') => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  useEffect(() => {
-    fetchFiles();
-    fetchShared();
-    const name = localStorage.getItem('userName');
-    if (name) setUserName(name);
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
   }, []);
 
-  const fetchFiles = async () => {
+  /**
+   * Fetch all files owned by current user from API
+   * Called on component mount and after file operations
+   */
+  const fetchFiles = useCallback(async () => {
     try {
       const { data } = await api.get('/files');
-      setFiles(data);
-    } catch {}
-  };
+      setFiles(data || []);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to fetch files', 'error');
+    }
+  }, [showToast]);
 
-  const fetchShared = async () => {
+  /**
+   * Fetch all files shared with current user
+   * Called on component mount to populate "Shared" tab
+   */
+  const fetchSharedFiles = useCallback(async () => {
     try {
       const { data } = await api.get('/files/shared-with-me');
-      setSharedFiles(data);
-    } catch {}
-  };
+      setSharedFiles(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
 
-  const handleUpload = async (file) => {
+
+  /**
+   * Load initial data on component mount
+   * Fetches user's files, shared files, and retrieves user name from localStorage
+   */
+  useEffect(() => {
+    fetchFiles();
+    fetchSharedFiles();
+
+    const name = localStorage.getItem('userName');
+    if (name) {
+      setUserName(name);
+    }
+  }, [fetchFiles, fetchSharedFiles]);
+
+  /**
+   * Handle file upload
+   * Converts file to FormData, sends to API with progress tracking
+   * Refreshes file list on success
+   * @param {File} file - File object from input or drop event
+   */
+  const handleUpload = useCallback(async (file) => {
     if (!file) return;
-    setUploading(true);
-    setUploadProgress(0);
-    setUploadingName(file.name);
+
     try {
+      setUploading(true);
+      setUploadProgress(0);
+      setUploadingName(file.name);
+
       const formData = new FormData();
       formData.append('file', file);
+
+      // Send file to backend, tracking upload progress
       await api.post('/files/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: e => setUploadProgress(Math.round((e.loaded / e.total) * 100))
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (e) => {
+          const percent = Math.round((e.loaded * 100) / e.total);
+          setUploadProgress(percent);
+        },
       });
+
+      // Refresh file list to show newly uploaded file
       await fetchFiles();
-      showToast(`"${file.name}" uploaded successfully`);
-    } catch {
+      showToast(`${file.name} uploaded successfully`);
+    } catch (err) {
+      console.error(err);
       showToast('Upload failed', 'error');
     } finally {
       setUploading(false);
       setUploadProgress(0);
       setUploadingName('');
     }
-  };
+  }, [fetchFiles, showToast]);
 
-  const handleDownload = async (file) => {
-    try {
-      const { data } = await api.get(`/files/${file.id}/download`);
-      window.open(data.url, '_blank');
-      showToast(`Downloading "${file.name}"`);
-    } catch { showToast('Download failed', 'error'); }
-  };
 
-  const handleDelete = async (file) => {
-    if (!window.confirm(`Delete "${file.name}"? This cannot be undone.`)) return;
+  /**
+   * Handle file download
+   * Fetches signed URL from API and downloads file to user's device
+   * @param {Object} file - File object with id and name
+   */
+  const handleDownload = useCallback(async (file) => {
+    showToast(`Preparing download for ${file.name}...`);
     try {
-      await api.delete(`/files/${file.id}`);
-      setFiles(f => f.filter(x => x.id !== file.id));
-      if (selectedFile?.id === file.id) { setSelectedFile(null); setDetailPanel(false); }
-      showToast(`"${file.name}" deleted`);
-    } catch { showToast('Delete failed', 'error'); }
-  };
+      // Get signed URL from backend
+      const response = await api.get(`/files/${file.id}/download`, {
+        responseType: 'blob',
+      });
 
-  const handleShare = async (e) => {
-    e.preventDefault();
-    if (!selectedFile) return;
-    try {
-      const { data } = await api.post(`/files/${selectedFile.id}/share`, { email: shareEmail, role: shareRole });
-      setShareMsg(data.message);
-      setShareEmail('');
-      showToast('File shared successfully');
+      // Create blob from response data
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', file.name);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up resources
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showToast(`Downloaded ${file.name}`);
     } catch (err) {
-      setShareMsg(err.response?.data?.error || 'Share failed');
+      console.error(err);
+      showToast('Download failed', 'error');
     }
-  };
+  }, [showToast]);
 
-  const fetchVersions = async (file) => {
+  /**
+   * Handle file deletion
+   * Shows confirmation dialog before deleting file
+   * @param {Object} file - File object to delete
+   */
+  const handleDelete = useCallback(async (file) => {
+    const confirmDelete = window.confirm(`Delete "${file.name}" ?`);
+    if (!confirmDelete) return;
+
     try {
-      const { data } = await api.get(`/files/${file.id}/versions`);
-      setVersions(data);
-    } catch { setVersions([]); }
-  };
+      // Delete file from API
+      await api.delete(`/files/${file.id}`);
+      
+      // Remove from local state
+      setFiles((prev) => prev.filter((f) => f.id !== file.id));
+      showToast('File deleted');
+    } catch (err) {
+      console.error(err);
+      showToast('Delete failed', 'error');
+    }
+  }, [showToast]);
 
-  const openDetail = (file) => {
-    setSelectedFile(file);
-    setDetailPanel(true);
-    setVersions([]);
-    setShareMsg('');
-    fetchVersions(file);
-  };
+  /**
+   * Handle file sharing
+   * Sends share request with email and role to API
+   * Updates shared files list on success
+   */
+  const handleShare = useCallback(async () => {
+    console.log('Share button clicked', { shareEmail, shareRole, sharingFile });
+    
+    if (!shareEmail || !shareRole || !sharingFile) {
+      console.warn('Missing share data', { shareEmail, shareRole, sharingFile });
+      showToast('Email and role required', 'error');
+      return;
+    }
 
+    try {
+      setSharingInProgress(true);
+      console.log('Sending share request for file:', sharingFile.id);
+      
+      // Send share request to API
+      const { data } = await api.post(`/files/${sharingFile.id}/share`, {
+        email: shareEmail,
+        role: shareRole,
+      });
+      
+      console.log('Share response:', data);
+      showToast(data.message || `Shared with ${shareEmail}`);
+      
+      // Reset share modal state
+      setShowShareModal(false);
+      setShareEmail('');
+      setShareRole('viewer');
+      setSharingFile(null);
+      
+      // Refresh shared files list
+      await fetchSharedFiles();
+    } catch (err) {
+      console.error('Share error:', err);
+      console.error('Error response:', err?.response?.data);
+      showToast(err?.response?.data?.error || 'Share failed', 'error');
+    } finally {
+      setSharingInProgress(false);
+    }
+  }, [shareEmail, shareRole, sharingFile, fetchSharedFiles, showToast]);
+
+  /**
+   * Handle file drop from drag-and-drop
+   * Extracts file and triggers upload
+   */
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleUpload(file);
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      handleUpload(droppedFile);
+    }
+  }, [handleUpload]);
+
+  /**
+   * Handle drag over event
+   * Shows visual feedback that drop zone is active
+   */
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    setDragging(true);
   }, []);
 
-  const handleDragOver = (e) => { e.preventDefault(); setDragging(true); };
-  const handleDragLeave = () => setDragging(false);
+  /**
+   * Handle drag leave event
+   * Removes visual feedback when user drags away
+   */
+  const handleDragLeave = useCallback(() => {
+    setDragging(false);
+  }, []);
 
-  const handleContextMenu = (e, file) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, file });
-  };
-
-  const closeContext = () => setContextMenu(null);
-
-  const handleLogout = () => {
+  /**
+   * Handle user logout
+   * Clears localStorage and redirects to login
+   */
+  const handleLogout = useCallback(() => {
     localStorage.clear();
     navigate('/login');
-  };
+  }, [navigate]);
 
-  const displayFiles = (tab === 'shared' ? sharedFiles : files)
-    .filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
+  /**
+   * Compute derived state for file display
+   */
+  const recentFiles = [...files]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 10);
 
-  const totalSize = files.reduce((acc, f) => acc + parseInt(f.size_bytes || 0), 0);
-  const storageUsedPct = Math.min((totalSize / (50 * 1024 * 1024 * 1024)) * 100, 100);
+  // Select files based on current tab
+  const currentFiles = tab === 'shared' ? sharedFiles : tab === 'recent' ? recentFiles : files;
+
+  // Filter files by search query
+  const filteredFiles = currentFiles.filter((file) =>
+    file.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Calculate total storage used and percentage
+  const totalSize = files.reduce((acc, file) => acc + Number(file.size_bytes || 0), 0);
+  const storageUsedPct = Math.min(
+    (totalSize / (50 * 1024 * 1024 * 1024)) * 100,
+    100
+  );
 
   return (
-    <div className="dash-root" onClick={closeContext} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
-
-      {/* TOPBAR */}
+    <div
+      className="dash-root"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
       <header className="topbar">
         <div className="topbar-brand">
-          <div className="topbar-logo">
-            <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
-              <path d="M14 3C8.477 3 4 7.477 4 13c0 3.09 1.408 5.857 3.632 7.723L6 24h16l-1.632-3.277A9.956 9.956 0 0024 13c0-5.523-4.477-10-10-10z" fill="white" fillOpacity="0.9"/>
-              <circle cx="10" cy="13" r="2" fill="#2563eb"/>
-              <circle cx="14" cy="10" r="2" fill="#2563eb"/>
-              <circle cx="18" cy="13" r="2" fill="#2563eb"/>
-            </svg>
-          </div>
           <span className="topbar-name">CloudVault</span>
         </div>
 
         <div className="topbar-search">
-          <svg className="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/><path d="M10 10l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           <input
-            className="search-input"
+            type="text"
             placeholder="Search files..."
+            className="search-input"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         <div className="topbar-right">
-          <button className="upload-btn" onClick={() => fileInputRef.current.click()}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 4L7 1l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          <button
+            className="upload-btn"
+            onClick={() => fileInputRef.current.click()}
+          >
             Upload
           </button>
-          <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => handleUpload(e.target.files[0])}/>
-          <div className="user-avatar" title={userName}>{getUserInitials(userName)}</div>
-          <button className="logout-btn" onClick={handleLogout} title="Logout">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            hidden
+            onChange={(e) => handleUpload(e.target.files[0])}
+          />
+
+          <div className="profile-wrapper">
+            <div
+              className="profile-trigger"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+            >
+              <div className="user-avatar">
+                {getUserInitials(userName)}
+              </div>
+              <span className="profile-name">{userName}</span>
+            </div>
+
+            {showProfileMenu && (
+              <div className="profile-dropdown">
+                <div className="profile-dropdown-name">{userName}</div>
+                <button
+                  className="profile-logout-btn"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="dash-body">
-        {/* SIDEBAR */}
         <aside className="sidebar">
-          <nav className="sidebar-nav">
-            <button className={`nav-item ${tab === 'myfiles' ? 'active' : ''}`} onClick={() => setTab('myfiles')}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3.5A1.5 1.5 0 013.5 2h3.879a1.5 1.5 0 011.06.44l1.122 1.12A1.5 1.5 0 0010.62 4H12.5A1.5 1.5 0 0114 5.5v7A1.5 1.5 0 0112.5 14h-9A1.5 1.5 0 012 12.5v-9z" stroke="currentColor" strokeWidth="1.5" fill="none"/></svg>
-              My Files
-              <span className="nav-badge">{files.length}</span>
-            </button>
-            <button className={`nav-item ${tab === 'shared' ? 'active' : ''}`} onClick={() => setTab('shared')}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5" r="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="10.5" cy="5" r="2" stroke="currentColor" strokeWidth="1.5"/><path d="M1 13c0-2.21 2.015-4 4.5-4s4.5 1.79 4.5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 9c1.657 0 3 1.343 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-              Shared with me
-              <span className="nav-badge">{sharedFiles.length}</span>
-            </button>
-            <button className={`nav-item ${tab === 'recent' ? 'active' : ''}`} onClick={() => setTab('recent')}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M8 5v3.5l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-              Recent
-            </button>
-          </nav>
+          <button
+            className={`nav-item ${tab === 'myfiles' ? 'active' : ''}`}
+            onClick={() => setTab('myfiles')}
+          >
+            My Files
+          </button>
 
-          <div className="sidebar-storage">
-            <div className="storage-label">
-              <span>Storage</span>
-              <span className="storage-used">{formatSize(totalSize)} / 50 GB</span>
-            </div>
+          <button
+            className={`nav-item ${tab === 'shared' ? 'active' : ''}`}
+            onClick={() => setTab('shared')}
+          >
+            Shared
+          </button>
+
+          <button
+            className={`nav-item ${tab === 'recent' ? 'active' : ''}`}
+            onClick={() => setTab('recent')}
+          >
+            Recent
+          </button>
+
+          <div className="storage-box">
+            <div>{formatSize(totalSize)} / 50 GB</div>
             <div className="storage-bar">
-              <div className="storage-fill" style={{ width: storageUsedPct + '%' }}/>
+              <div
+                className="storage-fill"
+                style={{ width: `${storageUsedPct}%` }}
+              />
             </div>
-            <div className="storage-pct">{storageUsedPct.toFixed(1)}% used</div>
           </div>
         </aside>
 
-        {/* MAIN CONTENT */}
         <main className="main-content">
+          {dragging && <div className="drag-overlay">Drop files to upload</div>}
 
-          {/* Drag overlay */}
-          {dragging && (
-            <div className="drag-overlay">
-              <div className="drag-inner">
-                <div className="drag-icon">⬆</div>
-                <div className="drag-text">Drop to upload</div>
-              </div>
-            </div>
-          )}
-
-          {/* Upload progress bar */}
           {uploading && (
             <div className="upload-progress-bar">
-              <div className="upb-left">
-                <div className="upb-spinner"/>
-                <span className="upb-name">Uploading <strong>{uploadingName}</strong></span>
-              </div>
+              <div>Uploading {uploadingName}</div>
               <div className="upb-track">
-                <div className="upb-fill" style={{ width: uploadProgress + '%' }}/>
+                <div
+                  className="upb-fill"
+                  style={{ width: `${uploadProgress}%` }}
+                />
               </div>
-              <span className="upb-pct">{uploadProgress}%</span>
             </div>
           )}
 
-          {/* Page header */}
           <div className="content-header">
-            <div className="content-header-left">
-              <h2 className="content-title">
-                {tab === 'myfiles' && 'My Files'}
-                {tab === 'shared' && 'Shared with me'}
-                {tab === 'recent' && 'Recent'}
-              </h2>
-              <span className="content-count">{displayFiles.length} item{displayFiles.length !== 1 ? 's' : ''}</span>
-            </div>
+            <h2>
+              {tab === 'myfiles' && 'My Files'}
+              {tab === 'shared' && 'Shared Files'}
+              {tab === 'recent' && 'Recent Files'}
+            </h2>
+
             <div className="view-toggle">
-              <button className={`vt-btn ${view === 'grid' ? 'active' : ''}`} onClick={() => setView('grid')} title="Grid view">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="8" y="0" width="6" height="6" rx="1"/><rect x="0" y="8" width="6" height="6" rx="1"/><rect x="8" y="8" width="6" height="6" rx="1"/></svg>
+              <button
+                className={view === 'grid' ? 'active' : ''}
+                onClick={() => setView('grid')}
+              >
+                Grid
               </button>
-              <button className={`vt-btn ${view === 'list' ? 'active' : ''}`} onClick={() => setView('list')} title="List view">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10M2 7h10M2 11h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              <button
+                className={view === 'list' ? 'active' : ''}
+                onClick={() => setView('list')}
+              >
+                List
               </button>
             </div>
           </div>
 
-          {/* Empty state */}
-          {displayFiles.length === 0 && !uploading && (
-            <div className="empty-state">
-              <div className="empty-icon">
-                {search ? '🔍' : tab === 'shared' ? '👥' : '☁'}
-              </div>
-              <div className="empty-title">
-                {search ? `No results for "${search}"` : tab === 'shared' ? 'No files shared with you' : 'No files yet'}
-              </div>
-              <div className="empty-sub">
-                {!search && tab === 'myfiles' && 'Upload your first file by clicking the Upload button or dragging a file here'}
-              </div>
-              {!search && tab === 'myfiles' && (
-                <button className="empty-upload-btn" onClick={() => fileInputRef.current.click()}>
-                  Upload a file
-                </button>
-              )}
-            </div>
-          )}
+          <div className={view === 'grid' ? 'file-grid' : 'file-list'}>
+            {filteredFiles.map((file) => {
+              const style = getFileStyle(file.mime_type);
 
-          {/* GRID VIEW */}
-          {view === 'grid' && displayFiles.length > 0 && (
-            <div className="file-grid">
-              {displayFiles.map(file => {
-                const { icon, color, bg } = getFileStyle(file.mime_type);
-                return (
+              return (
+                <div key={file.id} className="file-card">
                   <div
-                    key={file.id}
-                    className={`file-card ${selectedFile?.id === file.id ? 'selected' : ''}`}
-                    onClick={() => openDetail(file)}
-                    onContextMenu={e => handleContextMenu(e, file)}
+                    className="file-icon"
+                    style={{
+                      background: style.bg,
+                      color: style.color,
+                    }}
                   >
-                    <div className="fc-thumb" style={{ background: bg }}>
-                      <span className="fc-icon">{icon}</span>
-                    </div>
-                    <div className="fc-body">
-                      <div className="fc-name" title={file.name}>{file.name}</div>
-                      <div className="fc-meta">{formatSize(file.size_bytes)} · {formatDate(file.created_at)}</div>
-                    </div>
-                    <div className="fc-actions">
-                      <button className="fca-btn" onClick={e => { e.stopPropagation(); handleDownload(file); }} title="Download">
-                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v7M4 6l2.5 2.5L9 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M1 10v.5A1.5 1.5 0 002.5 12h8a1.5 1.5 0 001.5-1.5V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                      </button>
-                      <button className="fca-btn danger" onClick={e => { e.stopPropagation(); handleDelete(file); }} title="Delete">
-                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2.5a.5.5 0 01.5-.5h2a.5.5 0 01.5.5v1M10.5 3.5l-.5 7a1 1 0 01-1 1h-5a1 1 0 01-1-1l-.5-7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                      </button>
-                    </div>
-                    {file.role && <span className="fc-shared-badge">{file.role}</span>}
+                    {style.icon}
                   </div>
-                );
-              })}
-            </div>
-          )}
 
-          {/* LIST VIEW */}
-          {view === 'list' && displayFiles.length > 0 && (
-            <div className="file-list-wrap">
-              <div className="list-header">
-                <span className="lh-name">Name</span>
-                <span className="lh-size">Size</span>
-                <span className="lh-date">Modified</span>
-                <span className="lh-actions">Actions</span>
-              </div>
-              {displayFiles.map(file => {
-                const { icon, color, bg } = getFileStyle(file.mime_type);
-                return (
-                  <div
-                    key={file.id}
-                    className={`list-row ${selectedFile?.id === file.id ? 'selected' : ''}`}
-                    onClick={() => openDetail(file)}
-                    onContextMenu={e => handleContextMenu(e, file)}
-                  >
-                    <div className="lr-name">
-                      <div className="lr-icon" style={{ background: bg, color }}>
-                        {icon}
-                      </div>
-                      <div>
-                        <div className="lr-filename">{file.name}</div>
-                        {file.role && <span className="lr-role">{file.role}</span>}
-                      </div>
-                    </div>
-                    <span className="lr-size">{formatSize(file.size_bytes)}</span>
-                    <span className="lr-date">{formatDate(file.created_at)}</span>
-                    <div className="lr-actions">
-                      <button className="la-btn" onClick={e => { e.stopPropagation(); handleDownload(file); }}>Download</button>
-                      {!file.role && <button className="la-btn danger" onClick={e => { e.stopPropagation(); handleDelete(file); }}>Delete</button>}
-                    </div>
+                  <div className="file-name">{file.name}</div>
+                  <div className="file-meta">
+                    {formatSize(file.size_bytes)} • {formatDate(file.created_at)}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </main>
 
-        {/* DETAIL PANEL */}
-        {detailPanel && selectedFile && (
-          <aside className="detail-panel">
-            <div className="dp-header">
-              <h3 className="dp-title">File details</h3>
-              <button className="dp-close" onClick={() => setDetailPanel(false)}>✕</button>
-            </div>
+                  <div className="file-actions">
+                    <button
+                      className="download-btn"
+                      onClick={() => handleDownload(file)}
+                    >
+                      Download
+                    </button>
 
-            <div className="dp-preview">
-              <div className="dp-icon-wrap" style={{ background: getFileStyle(selectedFile.mime_type).bg }}>
-                <span className="dp-icon">{getFileStyle(selectedFile.mime_type).icon}</span>
-              </div>
-              <div className="dp-filename">{selectedFile.name}</div>
-            </div>
+                    {!file.role && (
+                      <button
+                        className="share-btn"
+                        onClick={() => {
+                          setSharingFile(file);
+                          setShowShareModal(true);
+                        }}
+                      >
+                        Share
+                      </button>
+                    )}
 
-            <div className="dp-info">
-              <div className="dp-row"><span className="dp-key">Size</span><span className="dp-val">{formatSize(selectedFile.size_bytes)}</span></div>
-              <div className="dp-row"><span className="dp-key">Type</span><span className="dp-val">{selectedFile.mime_type || 'Unknown'}</span></div>
-              <div className="dp-row"><span className="dp-key">Uploaded</span><span className="dp-val">{formatDate(selectedFile.created_at)}</span></div>
-            </div>
-
-            <div className="dp-actions">
-              <button className="dp-btn primary" onClick={() => handleDownload(selectedFile)}>
-                ⬇ Download
-              </button>
-              {!selectedFile.role && (
-                <button className="dp-btn danger" onClick={() => handleDelete(selectedFile)}>
-                  🗑 Delete
-                </button>
-              )}
-            </div>
-
-            {/* Share section */}
-            {!selectedFile.role && (
-              <div className="dp-section">
-                <div className="dp-section-title">Share file</div>
-                <form onSubmit={handleShare} className="share-form">
-                  <input
-                    className="share-input"
-                    type="email"
-                    placeholder="Email address"
-                    value={shareEmail}
-                    onChange={e => setShareEmail(e.target.value)}
-                    required
-                  />
-                  <select className="share-select" value={shareRole} onChange={e => setShareRole(e.target.value)}>
-                    <option value="viewer">Viewer</option>
-                    <option value="editor">Editor</option>
-                  </select>
-                  <button className="share-btn" type="submit">Share</button>
-                </form>
-                {shareMsg && <div className="share-msg">{shareMsg}</div>}
-              </div>
-            )}
-
-            {/* Version history */}
-            <div className="dp-section">
-              <div className="dp-section-title">Version history</div>
-              {versions.length === 0 ? (
-                <div className="dp-empty">No versions found</div>
-              ) : (
-                <div className="versions-list">
-                  {versions.map((v, i) => (
-                    <div key={v.versionId} className="version-row">
-                      <div className={`v-dot ${v.isLatest ? 'latest' : ''}`}/>
-                      <div className="v-info">
-                        <div className="v-label">{v.isLatest ? 'Current version' : `Version ${versions.length - i}`}</div>
-                        <div className="v-date">{formatDate(v.lastModified)} · {formatSize(v.size)}</div>
-                      </div>
-                    </div>
-                  ))}
+                    {!file.role && (
+                      <button
+                        className="danger"
+                        onClick={() => handleDelete(file)}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          </aside>
-        )}
+              );
+            })}
+          </div>
+        </main>
       </div>
 
-      {/* Context menu */}
-      {contextMenu && (
-        <div className="context-menu" style={{ top: contextMenu.y, left: contextMenu.x }} onClick={e => e.stopPropagation()}>
-          <button className="cm-item" onClick={() => { handleDownload(contextMenu.file); closeContext(); }}>⬇ Download</button>
-          <button className="cm-item" onClick={() => { openDetail(contextMenu.file); closeContext(); }}>ℹ Details & Share</button>
-          {!contextMenu.file.role && <button className="cm-item danger" onClick={() => { handleDelete(contextMenu.file); closeContext(); }}>🗑 Delete</button>}
+      {showShareModal && (
+        <div className="modal-overlay">
+          <div className="share-modal">
+            <h3>Share File</h3>
+            <p className="share-file-name">{sharingFile?.name}</p>
+
+            <input
+              type="email"
+              placeholder="Enter user email"
+              value={shareEmail}
+              onChange={(e) => setShareEmail(e.target.value)}
+              className="share-input"
+            />
+
+            <select
+              value={shareRole}
+              onChange={(e) => setShareRole(e.target.value)}
+              className="share-select"
+            >
+              <option value="viewer">Viewer</option>
+              <option value="editor">Editor</option>
+            </select>
+
+            <div className="share-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setShowShareModal(false);
+                  setShareEmail('');
+                  setShareRole('viewer');
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="confirm-share-btn"
+                onClick={handleShare}
+                disabled={sharingInProgress}
+              >
+                {sharingInProgress ? 'Sharing...' : 'Share File'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className={`toast ${toast.type}`}>
-          {toast.type === 'error' ? '✕' : '✓'} {toast.msg}
-        </div>
-      )}
+      {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
     </div>
   );
 }
