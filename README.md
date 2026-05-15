@@ -3,7 +3,6 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18.x-green)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18.x-blue)](https://reactjs.org/)
 [![AWS](https://img.shields.io/badge/AWS-Deployed-orange)](https://aws.amazon.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 A modern, secure, and cloud-powered file storage application inspired by Google Drive. Built with React.js, Node.js, PostgreSQL, and AWS S3 with full cloud deployment on AWS.
 
