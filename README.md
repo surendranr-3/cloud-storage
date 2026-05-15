@@ -5,8 +5,22 @@
 [![AWS](https://img.shields.io/badge/AWS-Deployed-orange)](https://aws.amazon.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-A modern, secure, and cloud-powered file storage application inspired by Google Drive.  
-Built with React.js, Node.js, PostgreSQL, and AWS S3 with full cloud deployment on AWS.
+A modern, secure, and cloud-powered file storage application inspired by Google Drive. Built with React.js, Node.js, PostgreSQL, and AWS S3 with full cloud deployment on AWS.
+
+## Table of Contents
+
+- [Live Application](#-live-application)
+- [Features](#-features)
+- [Project Objective](#-project-objective)
+- [System Architecture](#️-system-architecture)
+- [Technologies Used](#-technologies-used)
+- [Project Structure](#-project-structure)
+- [Installation & Setup](#-installation--setup)
+- [Database Schema](#️-database-schema)
+- [API Documentation](#-api-documentation)
+- [Deployment](#️-deployment)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
@@ -24,19 +38,41 @@ Built with React.js, Node.js, PostgreSQL, and AWS S3 with full cloud deployment 
 
 Develop a complete cloud-based online file storage system that allows users to:
 
-- Create secure accounts
-- Upload and manage files
-- Download files from cloud storage
-- Organize files into folders
-- Share files securely
-- Maintain file version history
-- Access files from anywhere through the internet
+- ✅ Create secure accounts with JWT authentication
+- ✅ Upload and manage files in cloud storage
+- ✅ Download files from cloud storage
+- ✅ Organize files into folders with nested structure support
+- ✅ Share files securely with controlled access permissions
+- ✅ Maintain file version history and restore older versions
+- ✅ Access files from anywhere through the internet
 
 This system simulates core functionalities of platforms like Google Drive and Dropbox using modern cloud technologies.
 
 ---
 
-## ☁️ Cloud Deployment
+## 🏗️ System Architecture
+
+```
+User Browser
+    ↓
+CloudFront CDN (HTTPS)
+    ↓
+React Frontend (AWS S3 Static Hosting)
+    ↓
+HTTPS API Requests
+    ↓
+DuckDNS Domain
+    ↓
+Nginx Reverse Proxy
+    ↓
+Node.js Express Backend (AWS EC2)
+    ↓
+PostgreSQL RDS Database
+    ↓
+AWS S3 Cloud Storage
+```
+
+## ☁️ Cloud Deployment Services
 
 | Service          | Technology Used           |
 | ---------------- | ------------------------- |
@@ -51,100 +87,50 @@ This system simulates core functionalities of platforms like Google Drive and Dr
 
 ---
 
-## 🏗️ System Architecture
-
-User Browser
-↓
-CloudFront CDN (HTTPS)
-↓
-React Frontend (AWS S3 Static Hosting)
-↓
-HTTPS API Requests
-↓
-DuckDNS Domain
-↓
-Nginx Reverse Proxy
-↓
-Node.js Express Backend (AWS EC2)
-↓
-PostgreSQL RDS Database
-↓
-AWS S3 Cloud Storage
-
-text
-
----
-
 ## ✨ Features
 
 ### 🔐 Authentication & Security
 
-- User registration and login
-- JWT-based authentication
-- Password hashing using bcrypt
-- Protected API routes
-- Secure HTTPS communication
+- User registration and login with email verification
+- JWT-based authentication for API security
+- Password hashing using bcryptjs
+- Protected API routes with middleware
+- Secure HTTPS communication (Let's Encrypt SSL)
 
 ### 📂 File Management
 
 - Upload files to AWS S3
 - Download files securely
-- Delete files
-- View uploaded files
-- File metadata storage
+- Delete files from storage
+- View uploaded files with metadata
+- File size tracking and management
 
 ### 📁 Folder Management
 
-- Create folders
-- Organize uploaded files
+- Create and organize folders
+- Organize uploaded files by folders
 - Nested folder structure support
+- Delete folders and manage hierarchy
 
 ### 🔄 File Version Control
 
-- Maintain file history
-- Store multiple versions
+- Maintain complete file history
+- Store multiple versions of files
 - Restore older file versions
+- Version tracking and management
 
 ### 🤝 File Sharing
 
-- Share uploaded files
+- Share uploaded files with other users
 - Controlled access permissions
+- Revoke shared access anytime
 
 ### 📱 Responsive UI
 
 - Fully responsive design
 - Mobile-friendly interface
-- Dashboard-based layout
-
----
-
-## 📁 Project Structure
-
-cloud-storage/
-├── backend/
-│ ├── middleware/
-│ ├── migrations/
-│ ├── routes/
-│ ├── db.js
-│ ├── s3.js
-│ ├── server.js
-│ ├── swagger.js
-│ ├── package.json
-│ └── .env
-│
-├── frontend/
-│ ├── public/
-│ ├── src/
-│ │ ├── pages/
-│ │ ├── api.js
-│ │ ├── App.js
-│ │ └── index.js
-│ ├── build/
-│ └── package.json
-│
-└── README.md
-
-text
+- Dashboard-based layout with intuitive navigation
+- Clean and modern user interface
 
 ---
 
@@ -152,30 +138,171 @@ text
 
 ### Frontend
 
-- React.js
-- HTML5 / CSS3 / JavaScript
-- Axios
+- **React.js** - UI library
+- **HTML5 / CSS3 / JavaScript** - Web standards
+- **Axios** - HTTP client for API calls
 
 ### Backend
 
-- Node.js
-- Express.js
-- JWT Authentication
-- bcryptjs
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **JWT** - Authentication
+- **bcryptjs** - Password hashing
 
 ### Database
 
-- PostgreSQL (AWS RDS)
+- **PostgreSQL** - Primary database (AWS RDS)
 
 ### Cloud & Deployment
 
-- AWS EC2
-- AWS S3
-- AWS CloudFront
-- Nginx
-- PM2
-- DuckDNS
-- Let's Encrypt SSL
+- **AWS EC2** - Backend hosting
+- **AWS S3** - File storage
+- **AWS CloudFront** - CDN for frontend
+- **Nginx** - Reverse proxy
+- **PM2** - Process manager
+- **DuckDNS** - Dynamic DNS
+- **Let's Encrypt** - SSL certificates
+
+---
+
+## � Project Structure
+
+```
+cloud-storage/
+├── backend/
+│   ├── middleware/
+│   │   └── auth.js                    # JWT authentication middleware
+│   ├── migrations/
+│   │   └── 001_add_folders_and_versions.sql  # Database migrations
+│   ├── routes/
+│   │   ├── auth.js                    # Authentication endpoints
+│   │   ├── files.js                   # File management endpoints
+│   │   ├── folders.js                 # Folder management endpoints
+│   │   └── versions.js                # Version control endpoints
+│   ├── db.js                          # Database configuration
+│   ├── s3.js                          # AWS S3 configuration
+│   ├── server.js                      # Express server setup
+│   ├── swagger.js                     # Swagger/OpenAPI documentation
+│   └── package.json                   # Node.js dependencies
+│
+├── frontend/
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   └── robots.txt
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── Auth.css
+│   │   │   ├── Dashboard.css
+│   │   │   ├── Dashboard.js
+│   │   │   ├── Login.js
+│   │   │   └── Register.js
+│   │   ├── api.js                     # API client configuration
+│   │   ├── App.js                     # Main App component
+│   │   ├── App.css
+│   │   ├── index.js                   # React entry point
+│   │   └── index.css
+│   ├── build/                         # Production build
+│   └── package.json                   # React dependencies
+│
+└── README.md                          # This file
+```
+
+---
+
+## 🚀 Installation & Setup
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
+- **npm** (comes with Node.js)
+- **PostgreSQL** (v12 or higher) - [Download](https://www.postgresql.org/)
+- **Git** - [Download](https://git-scm.com/)
+- **AWS Account** (for S3 and deployment) - [Sign up](https://aws.amazon.com/)
+
+### Backend Setup
+
+1. **Navigate to backend directory:**
+
+   ```bash
+   cd backend
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+3. **Create `.env` file with the following variables:**
+
+   ```env
+   DB_HOST=localhost
+   DB_USER=postgres
+   DB_PASSWORD=your_password
+   DB_NAME=cloud_storage
+   DB_PORT=5432
+
+   JWT_SECRET=your_jwt_secret_key
+
+   AWS_ACCESS_KEY_ID=your_aws_access_key
+   AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+   AWS_REGION=us-east-1
+   AWS_S3_BUCKET=your_bucket_name
+
+   NODE_ENV=development
+   PORT=5000
+   ```
+
+4. **Set up PostgreSQL database:**
+
+   ```bash
+   createdb cloud_storage
+   psql -U postgres -d cloud_storage -f migrations/001_add_folders_and_versions.sql
+   ```
+
+5. **Start the backend server:**
+
+   ```bash
+   npm start
+   ```
+
+   Backend will run on `http://localhost:5000`
+
+### Frontend Setup
+
+1. **Navigate to frontend directory:**
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+3. **Create `.env` file:**
+
+   ```env
+   REACT_APP_API_URL=http://localhost:5000/api
+   ```
+
+4. **Start the development server:**
+
+   ```bash
+   npm start
+   ```
+
+   Frontend will run on `http://localhost:3000`
+
+5. **Build for production:**
+   ```bash
+   npm run build
+   ```
 
 ---
 
@@ -183,41 +310,52 @@ text
 
 ### Users Table
 
-| Column        | Type           |
-| ------------- | -------------- |
-| id            | SERIAL         |
-| name          | VARCHAR        |
-| email         | VARCHAR UNIQUE |
-| password_hash | TEXT           |
+| Column        | Type           | Description                |
+| ------------- | -------------- | -------------------------- |
+| id            | SERIAL         | Primary key                |
+| name          | VARCHAR        | User's full name           |
+| email         | VARCHAR UNIQUE | User's email (unique)      |
+| password_hash | TEXT           | Hashed password            |
+| created_at    | TIMESTAMP      | Account creation timestamp |
 
 ### Files Table
 
-| Column      | Type      |
-| ----------- | --------- |
-| id          | SERIAL    |
-| user_id     | INTEGER   |
-| file_name   | TEXT      |
-| file_url    | TEXT      |
-| file_size   | BIGINT    |
-| uploaded_at | TIMESTAMP |
+| Column      | Type      | Description           |
+| ----------- | --------- | --------------------- |
+| id          | SERIAL    | Primary key           |
+| user_id     | INTEGER   | Foreign key (Users)   |
+| file_name   | TEXT      | Name of the file      |
+| file_url    | TEXT      | S3 file URL           |
+| file_size   | BIGINT    | File size in bytes    |
+| uploaded_at | TIMESTAMP | Upload timestamp      |
+| folder_id   | INTEGER   | Foreign key (Folders) |
+
+### Folders Table
+
+| Column    | Type    | Description                 |
+| --------- | ------- | --------------------------- |
+| id        | SERIAL  | Primary key                 |
+| user_id   | INTEGER | Foreign key (Users)         |
+| name      | TEXT    | Folder name                 |
+| parent_id | INTEGER | For nested folder structure |
 
 ### File Metadata Table
 
-| Column    | Type    |
-| --------- | ------- |
-| id        | SERIAL  |
-| file_id   | INTEGER |
-| mime_type | TEXT    |
-| version   | INTEGER |
+| Column    | Type    | Description         |
+| --------- | ------- | ------------------- |
+| id        | SERIAL  | Primary key         |
+| file_id   | INTEGER | Foreign key (Files) |
+| mime_type | TEXT    | File MIME type      |
+| version   | INTEGER | Version number      |
 
 ### Permissions Table
 
-| Column          | Type    |
-| --------------- | ------- |
-| id              | SERIAL  |
-| file_id         | INTEGER |
-| shared_with     | INTEGER |
-| permission_type | TEXT    |
+| Column          | Type    | Description                   |
+| --------------- | ------- | ----------------------------- |
+| id              | SERIAL  | Primary key                   |
+| file_id         | INTEGER | Foreign key (Files)           |
+| shared_with     | INTEGER | User ID (Foreign key - Users) |
+| permission_type | TEXT    | Type (read, write, admin)     |
 
 ---
 
@@ -231,189 +369,150 @@ text
 
 ```http
 POST /api/auth/register
-Request Body:
-
-json
-{
-  "name": "Ram",
-  "email": "ram@gmail.com",
-  "password": "ram123"
-}
-Login User
-http
-POST /api/auth/login
-Request Body:
-
-json
-{
-  "email": "ram@gmail.com",
-  "password": "ram123"
-}
-Response:
-
-json
-{
-  "token": "JWT_TOKEN"
-}
-📂 File APIs
-Method	Endpoint	Description
-POST	/api/files/upload	Upload file
-GET	/api/files	Get user files
-DELETE	/api/files/:id	Delete file
-📁 Folder APIs
-Method	Endpoint	Description
-POST	/api/folders	Create folder
-GET	/api/folders	Get folders
-🔄 Version APIs
-Method	Endpoint	Description
-GET	/api/versions/:fileId	Get all file versions
-☁️ AWS Services Used
-AWS S3
-File storage
-
-Object management
-
-Scalable cloud storage
-
-AWS RDS PostgreSQL
-User data
-
-File metadata
-
-Permissions
-
-Folder structure
-
-AWS EC2
-Hosting Node.js backend
-
-Running Express APIs
-
-PM2 process management
-
-AWS CloudFront
-HTTPS frontend delivery
-
-CDN caching
-
-Faster global access
-
-🚀 Deployment Steps
-1. Launch EC2 Instance
-Ubuntu Server
-
-Open ports: 22 (SSH), 80 (HTTP), 443 (HTTPS), 5000 (Backend)
-
-2. Connect to EC2
-bash
-ssh -i key.pem ubuntu@your-ip
-3. Install Dependencies
-bash
-sudo apt update
-sudo apt install nodejs npm nginx git -y
-4. Clone Repository
-bash
-git clone https://github.com/yourusername/cloud-storage.git
-cd cloud-storage
-5. Install Backend Dependencies
-bash
-cd backend
-npm install
-6. Configure Environment Variables
-Create .env file:
-
-env
-PORT=5000
-JWT_SECRET=your_secret
-DB_URL=postgresql://username:password@host/database
-AWS_ACCESS_KEY_ID=YOUR_KEY
-AWS_SECRET_ACCESS_KEY=YOUR_SECRET
-AWS_REGION=ap-south-1
-AWS_BUCKET=your_bucket
-7. Start Backend Server with PM2
-bash
-pm2 start server.js --name cloud-api
-pm2 save
-8. Configure Nginx Reverse Proxy
-nginx
-server {
-    server_name stoorage.duckdns.org;
-
-    location / {
-        proxy_pass http://localhost:5000;
-    }
-}
-9. Enable HTTPS with Let's Encrypt
-bash
-sudo certbot --nginx -d stoorage.duckdns.org
-10. Deploy Frontend
-Build React app: npm run build
-
-Upload build/ folder to AWS S3 bucket
-
-Enable static website hosting and public access
-
-Create CloudFront distribution pointing to the S3 bucket
-
-Configure custom error pages:
-
-Error Code	Response Page	HTTP Code
-403	/index.html	200
-404	/index.html	200
-📊 Monitoring & Logs
-bash
-# View PM2 logs
-pm2 logs
-
-# Check PM2 status
-pm2 status
-🧪 Testing
-The application was tested with:
-
-Multiple user accounts
-
-Concurrent file uploads
-
-Large file handling
-
-JWT authentication
-
-CloudFront HTTPS routing
-
-API integration
-
-File version retrieval
-
-📚 Dataset References
-Drive File Data
-
-Cloud Storage Dataset
-
-📖 Reference Projects
-Cloud File Storage System
-
-AWS Cloud Drive Sample
-
-Cloud Storage App
-
-🐛 Troubleshooting
-Problem	Solution
-API not responding	Check PM2 status (pm2 status)
-HTTPS issue	Verify Nginx SSL configuration
-React routes not working	Add CloudFront custom error pages (403/404)
-File upload failing	Verify S3 bucket permissions
-Database connection error	Check RDS security group inbound rules
-Mixed content error	Use HTTPS backend URL
-👨‍💻 Author
-Surendran
-
-🚀 Final Submission
-Live Frontend: https://d34sqa3840006d.cloudfront.net/login
-
-Backend API: https://stoorage.duckdns.org/api
-
-GitHub Repository: https://github.com/yourusername/cloud-storage
-
-🏁 Conclusion
-This project demonstrates the complete development and deployment lifecycle of a modern cloud-native file storage application using AWS services. It includes secure authentication, scalable cloud storage, REST APIs, responsive frontend design, HTTPS deployment, and production-ready cloud architecture similar to enterprise file storage platforms like Google Drive.
+Content-Type: application/json
 ```
+
+**Request Body:**
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "securePassword123"
+}
+```
+
+#### Login User
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```json
+{
+  "email": "john@example.com",
+  "password": "securePassword123"
+}
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### 📂 File APIs
+
+| Method | Endpoint                  | Description        | Auth Required |
+| ------ | ------------------------- | ------------------ | ------------- |
+| POST   | `/api/files/upload`       | Upload a new file  | Yes           |
+| GET    | `/api/files`              | Get all user files | Yes           |
+| GET    | `/api/files/:id`          | Get file details   | Yes           |
+| DELETE | `/api/files/:id`          | Delete a file      | Yes           |
+| GET    | `/api/files/:id/download` | Download a file    | Yes           |
+
+### 📁 Folder APIs
+
+| Method | Endpoint           | Description        | Auth Required |
+| ------ | ------------------ | ------------------ | ------------- |
+| POST   | `/api/folders`     | Create a folder    | Yes           |
+| GET    | `/api/folders`     | Get all folders    | Yes           |
+| GET    | `/api/folders/:id` | Get folder details | Yes           |
+| DELETE | `/api/folders/:id` | Delete a folder    | Yes           |
+
+### 🔄 Version APIs
+
+| Method | Endpoint                           | Description                  | Auth Required |
+| ------ | ---------------------------------- | ---------------------------- | ------------- |
+| GET    | `/api/versions/:fileId`            | Get all file versions        | Yes           |
+| POST   | `/api/versions/:fileId`            | Create a new file version    | Yes           |
+| GET    | `/api/versions/:versionId`         | Get specific version details | Yes           |
+| PUT    | `/api/versions/:versionId/restore` | Restore to this version      | Yes           |
+
+---
+
+## ☁️ AWS Services Used
+
+### AWS S3
+
+- Secure file storage
+- Object management
+- Scalable cloud storage for all uploaded files
+
+### AWS RDS PostgreSQL
+
+- User account data
+- File metadata storage
+- Permission management
+- Folder structure
+
+### AWS EC2
+
+- Hosting Node.js backend
+- Running Express APIs
+- PM2 process management
+
+### AWS CloudFront
+
+- HTTPS frontend delivery
+- CDN caching for fast access
+- Global content distribution
+
+---
+
+## 🚀 Deployment Guide
+
+### Deploying Backend to AWS EC2
+
+1. **Connect to EC2 instance via SSH**
+2. **Clone the repository**
+3. **Install Node.js and PM2**
+4. **Configure environment variables**
+5. **Install dependencies:** `npm install`
+6. **Start with PM2:** `pm2 start server.js --name "cloud-storage-api"`
+
+### Deploying Frontend to AWS S3 & CloudFront
+
+1. **Build the React app:** `npm run build`
+2. **Upload to S3 bucket:** `aws s3 sync build/ s3://your-bucket-name/`
+3. **Invalidate CloudFront cache:** `aws cloudfront create-invalidation --distribution-id YOUR_DIST_ID --paths "/*"`
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. **Fork the repository**
+2. **Create a new branch:** `git checkout -b feature/your-feature-name`
+3. **Make your changes**
+4. **Commit your changes:** `git commit -m 'Add your feature'`
+5. **Push to the branch:** `git push origin feature/your-feature-name`
+6. **Open a Pull Request**
+
+### Code Style Guidelines
+
+- Use consistent indentation (2 spaces)
+- Follow JavaScript ES6+ standards
+- Use meaningful variable names
+- Add comments for complex logic
+- Test your changes before submitting
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📧 Contact & Support
+
+For questions, bug reports, or suggestions, please open an issue in the repository or contact the maintainers.
+
+**Happy coding! 🚀**
