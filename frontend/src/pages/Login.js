@@ -388,32 +388,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* OPTIONS */}
-
-            <div className="form-options">
-
-              <label className="remember-box">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) =>
-                    setRememberMe(
-                      e.target.checked
-                    )
-                  }
-                />
-
-                Remember me
-              </label>
-
-              <Link
-                to="/forgot-password"
-                className="forgot-link"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-
             {/* BUTTON */}
 
             <button

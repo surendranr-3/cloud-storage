@@ -21,8 +21,8 @@ import axios from 'axios';
  * Determine API base URL based on environment
  * Uses REACT_APP_API_URL if set, otherwise defaults to localhost
  */
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
+// const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://ec2-13-206-86-158.ap-south-1.compute.amazonaws.com:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://stoorage.duckdns.org/api';
 // Create axios instance with backend API base URL
 const api = axios.create({
   baseURL: API_BASE_URL,

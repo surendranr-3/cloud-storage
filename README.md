@@ -1,342 +1,419 @@
-# CloudVault – Cloud-Based File Storage System
+# CloudVault - Cloud-Based Online File Storage System
 
-A full‑stack Google Drive clone with React, Node.js, AWS S3, and RDS.
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-green)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18.x-blue)](https://reactjs.org/)
+[![AWS](https://img.shields.io/badge/AWS-Deployed-orange)](https://aws.amazon.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-## 🚀 Live Demo
+A modern, secure, and cloud-powered file storage application inspired by Google Drive.  
+Built with React.js, Node.js, PostgreSQL, and AWS S3 with full cloud deployment on AWS.
 
-- **Frontend:** [http://cloudstorage-frontend-suren.s3-website.ap-south-1.amazonaws.com/login](http://cloudstorage-frontend-suren.s3-website.ap-south-1.amazonaws.com/login)
-- **Backend API:** `http://65.0.89.9:5000/api`
+---
+
+## 🌐 Live Application
+
+- **Frontend (CloudFront HTTPS)**  
+  [https://d34sqa3840006d.cloudfront.net/login](https://d34sqa3840006d.cloudfront.net/login)
+
+- **Backend API (HTTPS)**  
+  [https://stoorage.duckdns.org/api](https://stoorage.duckdns.org/api)
+
+---
+
+## 📌 Project Objective
+
+Develop a complete cloud-based online file storage system that allows users to:
+
+- Create secure accounts
+- Upload and manage files
+- Download files from cloud storage
+- Organize files into folders
+- Share files securely
+- Maintain file version history
+- Access files from anywhere through the internet
+
+This system simulates core functionalities of platforms like Google Drive and Dropbox using modern cloud technologies.
+
+---
+
+## ☁️ Cloud Deployment
+
+| Service          | Technology Used           |
+| ---------------- | ------------------------- |
+| Cloud Provider   | Amazon Web Services (AWS) |
+| Frontend Hosting | AWS S3 + CloudFront CDN   |
+| Backend Hosting  | AWS EC2 (Ubuntu Server)   |
+| Database         | PostgreSQL (AWS RDS)      |
+| Cloud Storage    | AWS S3                    |
+| Domain Provider  | DuckDNS                   |
+| HTTPS SSL        | Let's Encrypt + Nginx     |
+| Process Manager  | PM2                       |
+
+---
+
+## 🏗️ System Architecture
+
+User Browser
+↓
+CloudFront CDN (HTTPS)
+↓
+React Frontend (AWS S3 Static Hosting)
+↓
+HTTPS API Requests
+↓
+DuckDNS Domain
+↓
+Nginx Reverse Proxy
+↓
+Node.js Express Backend (AWS EC2)
+↓
+PostgreSQL RDS Database
+↓
+AWS S3 Cloud Storage
+
+text
+
+---
 
 ## ✨ Features
 
-### Core Features ✅
+### 🔐 Authentication & Security
 
-- User registration & login (JWT authentication, 7-day token expiry)
-- Upload, download, delete files
-- File sharing with viewer/editor roles
-- Fully mobile‑responsive UI
-- Passwords hashed with bcrypt (10 salt rounds)
-- Metadata stored in AWS RDS (PostgreSQL), files in S3
-- S3 Server-Side Encryption (AES-256)
+- User registration and login
+- JWT-based authentication
+- Password hashing using bcrypt
+- Protected API routes
+- Secure HTTPS communication
 
-### Enterprise Features 🏆 (NEW)
+### 📂 File Management
 
-- **Folder Hierarchy**: Create nested folders with parent-child relationships
-- **Version History**: Automatic version tracking - restore any previous file version
-- **Advanced Search**: Search files by name, type, date range, and size
-- **Professional API Docs**: Swagger/OpenAPI documentation at `/api-docs`
+- Upload files to AWS S3
+- Download files securely
+- Delete files
+- View uploaded files
+- File metadata storage
 
-## 🧱 Architecture
+### 📁 Folder Management
 
-```
-React Frontend (S3 static) → REST API → Node.js/Express Backend (EC2)
-│
-┌───────────────┼───────────────┐
-│ │ │
-AWS RDS AWS S3 JWT Auth
-(file metadata) (file storage)
-```
+- Create folders
+- Organize uploaded files
+- Nested folder structure support
 
-## 📦 Setup & Installation
+### 🔄 File Version Control
 
-### Prerequisites
+- Maintain file history
+- Store multiple versions
+- Restore older file versions
 
-- Node.js v16+
-- AWS account (S3 bucket + RDS instance)
-- Git
+### 🤝 File Sharing
 
-### Backend (Node.js/Express)
+- Share uploaded files
+- Controlled access permissions
 
-```bash
-git clone https://github.com/surendranr-3/cloud-storage.git
-cd cloud-storage
-npm install
-```
+### 📱 Responsive UI
 
-Create a `.env` file:
+- Fully responsive design
+- Mobile-friendly interface
+- Dashboard-based layout
 
-```
-PORT=5000
-DB_HOST=your-rds-endpoint
-DB_USER=admin
-DB_PASSWORD=yourpassword
-DB_NAME=cloudvault
-AWS_ACCESS_KEY_ID=yourkey
-AWS_SECRET_ACCESS_KEY=yoursecret
-AWS_REGION=ap-south-1
-S3_BUCKET_NAME=your-bucket
-JWT_SECRET=yourrandomsecret
-```
+---
 
-Run the server:
+## 📁 Project Structure
 
-```bash
-npm start
-```
-
-### Frontend (React)
-
-```bash
-cd frontend
-npm install
-npm start   # Opens at http://localhost:3000
-```
-
-## 🔌 API Endpoints
-
-### 🔐 Authentication
-
-| Method | Endpoint           | Auth | Description    |
-| ------ | ------------------ | ---- | -------------- |
-| POST   | /api/auth/register | No   | Create account |
-| POST   | /api/auth/login    | No   | Login → JWT    |
-
-### 📁 Files (Core)
-
-| Method | Endpoint                  | Auth | Description          |
-| ------ | ------------------------- | ---- | -------------------- |
-| GET    | /api/files                | Yes  | List user files      |
-| POST   | /api/files/upload         | Yes  | Upload (multipart)   |
-| GET    | /api/files/:id/download   | Yes  | Get presigned URL    |
-| DELETE | /api/files/:id            | Yes  | Delete file          |
-| POST   | /api/files/:id/share      | Yes  | Share file           |
-| GET    | /api/files/shared-with-me | Yes  | Files shared with me |
-
-### 📁 Folders (NEW)
-
-| Method | Endpoint                  | Auth | Description              |
-| ------ | ------------------------- | ---- | ------------------------ |
-| POST   | /api/folders              | Yes  | Create folder            |
-| GET    | /api/folders              | Yes  | List folders             |
-| GET    | /api/folders/:id/files    | Yes  | List files in folder     |
-| GET    | /api/folders/:id/children | Yes  | List subfolders          |
-| PUT    | /api/folders/:id          | Yes  | Rename/move folder       |
-| DELETE | /api/folders/:id          | Yes  | Delete folder & contents |
-
-### 📜 Version History (NEW)
-
-| Method | Endpoint                                  | Auth | Description       |
-| ------ | ----------------------------------------- | ---- | ----------------- |
-| GET    | /api/versions/:fileId/versions            | Yes  | List all versions |
-| GET    | /api/versions/:fileId/versions/:versionId | Yes  | Download version  |
-| POST   | /api/versions/:fileId/restore/:versionId  | Yes  | Restore version   |
-
-### 🔍 Search (NEW)
-
-| Method | Endpoint                | Auth | Description                            |
-| ------ | ----------------------- | ---- | -------------------------------------- |
-| GET    | /api/files/search?q=... | Yes  | Search files by name, type, date, size |
-
-### 📚 API Documentation (NEW)
-
-- **Endpoint**: `http://localhost:5000/api-docs`
-- **Format**: Interactive Swagger UI with OpenAPI 3.0 specification
-- **Features**: Try-it-out functionality, parameter validation, response examples
-
-## 🛡️ Security
-
-- Passwords hashed with bcrypt
-- JWT protected routes
-- S3 objects set to private ACL
-- CORS enabled for frontend domain
-
-## 📂 Project Structure
-
-```
 cloud-storage/
-├── server.js                   # Express app with Swagger setup
-├── swagger.js                  # OpenAPI 3.0 specification (NEW)
-├── routes/
-│   ├── auth.js                 # Register & login
-│   ├── files.js                # File CRUD, sharing, search (UPDATED)
-│   ├── folders.js              # Folder hierarchy (NEW)
-│   └── versions.js             # File version history (NEW)
-├── middleware/
-│   └── auth.js                 # JWT verification
-├── migrations/
-│   └── 001_add_folders_and_versions.sql  # Database migration (NEW)
-├── db.js                       # PostgreSQL connection pool
-├── s3.js                       # S3 configuration
-├── frontend/                   # React app
-│   ├── public/index.html
-│   ├── src/
-│   │   ├── api.js              # Axios setup
-│   │   ├── pages/              # UI pages
-│   │   └── App.js
-│   └── package.json
-├── .env.example
+├── backend/
+│ ├── middleware/
+│ ├── migrations/
+│ ├── routes/
+│ ├── db.js
+│ ├── s3.js
+│ ├── server.js
+│ ├── swagger.js
+│ ├── package.json
+│ └── .env
+│
+├── frontend/
+│ ├── public/
+│ ├── src/
+│ │ ├── pages/
+│ │ ├── api.js
+│ │ ├── App.js
+│ │ └── index.js
+│ ├── build/
+│ └── package.json
+│
 └── README.md
-```
 
-## 🗄️ Database Schema (NEW)
+text
+
+---
+
+## 🛠️ Technologies Used
+
+### Frontend
+
+- React.js
+- HTML5 / CSS3 / JavaScript
+- Axios
+
+### Backend
+
+- Node.js
+- Express.js
+- JWT Authentication
+- bcryptjs
+
+### Database
+
+- PostgreSQL (AWS RDS)
+
+### Cloud & Deployment
+
+- AWS EC2
+- AWS S3
+- AWS CloudFront
+- Nginx
+- PM2
+- DuckDNS
+- Let's Encrypt SSL
+
+---
+
+## 🗄️ Database Schema
 
 ### Users Table
 
-```sql
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255),
-  email VARCHAR(255) UNIQUE,
-  password VARCHAR(255),  -- bcrypt hash
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+| Column        | Type           |
+| ------------- | -------------- |
+| id            | SERIAL         |
+| name          | VARCHAR        |
+| email         | VARCHAR UNIQUE |
+| password_hash | TEXT           |
 
 ### Files Table
 
-```sql
-CREATE TABLE files (
-  id SERIAL PRIMARY KEY,
-  owner_id INTEGER NOT NULL,
-  name VARCHAR(255),
-  size_bytes BIGINT,
-  mime_type VARCHAR(255),
-  s3_key VARCHAR(1024),
-  folder_id INTEGER,          -- NEW: Which folder file is in
-  is_version BOOLEAN,         -- NEW: Flag if this is a version
-  version_of_id INTEGER,      -- NEW: If version, which file it belongs to
-  created_at TIMESTAMP,
-  FOREIGN KEY (owner_id) REFERENCES users(id),
-  FOREIGN KEY (folder_id) REFERENCES folders(id),
-  FOREIGN KEY (version_of_id) REFERENCES files(id)
-);
-```
+| Column      | Type      |
+| ----------- | --------- |
+| id          | SERIAL    |
+| user_id     | INTEGER   |
+| file_name   | TEXT      |
+| file_url    | TEXT      |
+| file_size   | BIGINT    |
+| uploaded_at | TIMESTAMP |
 
-### Folders Table (NEW)
+### File Metadata Table
 
-```sql
-CREATE TABLE folders (
-  id SERIAL PRIMARY KEY,
-  owner_id INTEGER NOT NULL,
-  name VARCHAR(255),
-  parent_id INTEGER,  -- NULL for root folders, otherwise FK to parent
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP,
-  FOREIGN KEY (owner_id) REFERENCES users(id),
-  FOREIGN KEY (parent_id) REFERENCES folders(id),
-  UNIQUE(owner_id, name, parent_id)  -- Unique names per parent
-);
-```
-
-### File Versions Table (NEW)
-
-```sql
-CREATE TABLE file_versions (
-  id SERIAL PRIMARY KEY,
-  file_id INTEGER NOT NULL,
-  version_number INTEGER,
-  s3_key VARCHAR(1024),
-  size_bytes BIGINT,
-  mime_type VARCHAR(255),
-  created_by_id INTEGER,
-  created_at TIMESTAMP,
-  FOREIGN KEY (file_id) REFERENCES files(id),
-  FOREIGN KEY (created_by_id) REFERENCES users(id)
-);
-```
+| Column    | Type    |
+| --------- | ------- |
+| id        | SERIAL  |
+| file_id   | INTEGER |
+| mime_type | TEXT    |
+| version   | INTEGER |
 
 ### Permissions Table
 
-```sql
-CREATE TABLE permissions (
-  id SERIAL PRIMARY KEY,
-  file_id INTEGER NOT NULL,
-  user_id INTEGER NOT NULL,
-  role VARCHAR(50),  -- 'viewer' or 'editor'
-  created_at TIMESTAMP,
-  FOREIGN KEY (file_id) REFERENCES files(id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-```
+| Column          | Type    |
+| --------------- | ------- |
+| id              | SERIAL  |
+| file_id         | INTEGER |
+| shared_with     | INTEGER |
+| permission_type | TEXT    |
 
-## 🔄 Running Database Migrations
+---
 
-```bash
-# Apply migration to your RDS PostgreSQL database
-psql postgresql://user:password@host:5432/cloudvault < migrations/001_add_folders_and_versions.sql
+## 🔌 API Documentation
 
-# This will create:
-# - folders table with parent-child relationships
-# - file_versions table for version history
-# - Add folder_id, is_version, version_of_id columns to files
-# - Create indexes for performance (owner_id, parent_id, full-text search)
-```
+**Base URL:** `https://stoorage.duckdns.org/api`
 
-## 📈 Deployment & Monitoring
+### 🔐 Authentication APIs
 
-- **Frontend** – Built and deployed to S3 static website hosting
-- **Backend** – Running on EC2 (AMI Linux 2)
-- **Database** – RDS PostgreSQL (with full-text search indexes)
-- **Storage** – S3 bucket (with AES-256 encryption)
-- **API Docs** – Swagger UI at `/api-docs` (NEW)
-- **Monitoring** – Future integration with CloudWatch (logs, metrics)
+#### Register User
 
-```
-cloud-storage
-├─ backend
-│  ├─ .env
-│  ├─ .env.example
-│  ├─ db.js
-│  ├─ middleware
-│  │  └─ auth.js
-│  ├─ migrations
-│  │  └─ 001_add_folders_and_versions.sql
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ routes
-│  │  ├─ auth.js
-│  │  ├─ files.js
-│  │  ├─ folders.js
-│  │  └─ versions.js
-│  ├─ s3.js
-│  ├─ server.js
-│  └─ swagger.js
-├─ ENTERPRISE_FEATURES_SUMMARY.md
-├─ frontend
-│  ├─ .env.example
-│  ├─ build
-│  │  ├─ asset-manifest.json
-│  │  ├─ favicon.ico
-│  │  ├─ index.html
-│  │  ├─ logo192.png
-│  │  ├─ logo512.png
-│  │  ├─ manifest.json
-│  │  ├─ robots.txt
-│  │  └─ static
-│  │     ├─ css
-│  │     │  ├─ main.fc5f11b3.css
-│  │     │  └─ main.fc5f11b3.css.map
-│  │     └─ js
-│  │        ├─ main.76ba6294.js
-│  │        ├─ main.76ba6294.js.LICENSE.txt
-│  │        └─ main.76ba6294.js.map
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ public
-│  │  ├─ favicon.ico
-│  │  ├─ index.html
-│  │  ├─ logo192.png
-│  │  ├─ logo512.png
-│  │  ├─ manifest.json
-│  │  └─ robots.txt
-│  ├─ README.md
-│  └─ src
-│     ├─ api.js
-│     ├─ App.css
-│     ├─ App.js
-│     ├─ App.test.js
-│     ├─ components
-│     ├─ index.css
-│     ├─ index.js
-│     ├─ logo.svg
-│     ├─ pages
-│     │  ├─ Auth.css
-│     │  ├─ Dashboard.css
-│     │  ├─ Dashboard.js
-│     │  ├─ Login.js
-│     │  └─ Register.js
-│     ├─ reportWebVitals.js
-│     └─ setupTests.js
-└─ README.md
+```http
+POST /api/auth/register
+Request Body:
 
+json
+{
+  "name": "Ram",
+  "email": "ram@gmail.com",
+  "password": "ram123"
+}
+Login User
+http
+POST /api/auth/login
+Request Body:
+
+json
+{
+  "email": "ram@gmail.com",
+  "password": "ram123"
+}
+Response:
+
+json
+{
+  "token": "JWT_TOKEN"
+}
+📂 File APIs
+Method	Endpoint	Description
+POST	/api/files/upload	Upload file
+GET	/api/files	Get user files
+DELETE	/api/files/:id	Delete file
+📁 Folder APIs
+Method	Endpoint	Description
+POST	/api/folders	Create folder
+GET	/api/folders	Get folders
+🔄 Version APIs
+Method	Endpoint	Description
+GET	/api/versions/:fileId	Get all file versions
+☁️ AWS Services Used
+AWS S3
+File storage
+
+Object management
+
+Scalable cloud storage
+
+AWS RDS PostgreSQL
+User data
+
+File metadata
+
+Permissions
+
+Folder structure
+
+AWS EC2
+Hosting Node.js backend
+
+Running Express APIs
+
+PM2 process management
+
+AWS CloudFront
+HTTPS frontend delivery
+
+CDN caching
+
+Faster global access
+
+🚀 Deployment Steps
+1. Launch EC2 Instance
+Ubuntu Server
+
+Open ports: 22 (SSH), 80 (HTTP), 443 (HTTPS), 5000 (Backend)
+
+2. Connect to EC2
+bash
+ssh -i key.pem ubuntu@your-ip
+3. Install Dependencies
+bash
+sudo apt update
+sudo apt install nodejs npm nginx git -y
+4. Clone Repository
+bash
+git clone https://github.com/yourusername/cloud-storage.git
+cd cloud-storage
+5. Install Backend Dependencies
+bash
+cd backend
+npm install
+6. Configure Environment Variables
+Create .env file:
+
+env
+PORT=5000
+JWT_SECRET=your_secret
+DB_URL=postgresql://username:password@host/database
+AWS_ACCESS_KEY_ID=YOUR_KEY
+AWS_SECRET_ACCESS_KEY=YOUR_SECRET
+AWS_REGION=ap-south-1
+AWS_BUCKET=your_bucket
+7. Start Backend Server with PM2
+bash
+pm2 start server.js --name cloud-api
+pm2 save
+8. Configure Nginx Reverse Proxy
+nginx
+server {
+    server_name stoorage.duckdns.org;
+
+    location / {
+        proxy_pass http://localhost:5000;
+    }
+}
+9. Enable HTTPS with Let's Encrypt
+bash
+sudo certbot --nginx -d stoorage.duckdns.org
+10. Deploy Frontend
+Build React app: npm run build
+
+Upload build/ folder to AWS S3 bucket
+
+Enable static website hosting and public access
+
+Create CloudFront distribution pointing to the S3 bucket
+
+Configure custom error pages:
+
+Error Code	Response Page	HTTP Code
+403	/index.html	200
+404	/index.html	200
+📊 Monitoring & Logs
+bash
+# View PM2 logs
+pm2 logs
+
+# Check PM2 status
+pm2 status
+🧪 Testing
+The application was tested with:
+
+Multiple user accounts
+
+Concurrent file uploads
+
+Large file handling
+
+JWT authentication
+
+CloudFront HTTPS routing
+
+API integration
+
+File version retrieval
+
+📚 Dataset References
+Drive File Data
+
+Cloud Storage Dataset
+
+📖 Reference Projects
+Cloud File Storage System
+
+AWS Cloud Drive Sample
+
+Cloud Storage App
+
+🐛 Troubleshooting
+Problem	Solution
+API not responding	Check PM2 status (pm2 status)
+HTTPS issue	Verify Nginx SSL configuration
+React routes not working	Add CloudFront custom error pages (403/404)
+File upload failing	Verify S3 bucket permissions
+Database connection error	Check RDS security group inbound rules
+Mixed content error	Use HTTPS backend URL
+👨‍💻 Author
+Surendran
+
+🚀 Final Submission
+Live Frontend: https://d34sqa3840006d.cloudfront.net/login
+
+Backend API: https://stoorage.duckdns.org/api
+
+GitHub Repository: https://github.com/yourusername/cloud-storage
+
+🏁 Conclusion
+This project demonstrates the complete development and deployment lifecycle of a modern cloud-native file storage application using AWS services. It includes secure authentication, scalable cloud storage, REST APIs, responsive frontend design, HTTPS deployment, and production-ready cloud architecture similar to enterprise file storage platforms like Google Drive.
 ```

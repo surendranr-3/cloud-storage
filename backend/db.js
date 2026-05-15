@@ -1,18 +1,25 @@
 /**
  * DATABASE CONNECTION POOL
- * 
- * Initializes a PostgreSQL connection pool using the pg library.
- * This module exports a reusable pool instance for all database queries.
- * 
- * Configuration:
- * - Connection string from environment variable: DB_URL
- * - Pool automatically manages connection lifecycle
- * - Used by auth and file routes for executing database queries
- */
+ * AWS RDS PostgreSQL SSL Configuration
+ **/
 
-const { Pool } = require('pg');
+const pg = require("pg");
+const { Pool } = pg;
 
-// Create and export PostgreSQL connection pool
-const pool = new Pool({ connectionString: process.env.DB_URL });
+const fs = require("fs");
+require("dotenv").config();
+
+const pool = new Pool({
+  connectionString: process.env.DB_URL,
+
+  ssl: {
+    ca: fs.readFileSync("./rds-ca.pem").toString(),
+    rejectUnauthorized: false
+  }
+});
+
+pool.connect()
+  .then(() => console.log("✅ PostgreSQL RDS Connected"))
+  .catch(err => console.error("❌ PostgreSQL Connection Error:", err.message));
 
 module.exports = pool;
