@@ -503,14 +503,6 @@ Contributions are welcome! Please follow these steps:
 - Add comments for complex logic
 - Test your changes before submitting
 
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
 ## 📧 Contact & Support
 
 For questions, bug reports, or suggestions, please open an issue in the repository or contact the maintainers.
