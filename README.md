@@ -483,7 +483,66 @@ Content-Type: application/json
 
 ---
 
-## 🤝 Contributing
+## � Testing & Validation
+
+The application was tested using multiple user accounts and various file types to ensure reliability and scalability.
+
+### Functional Testing Performed
+
+- ✅ User registration and login testing
+- ✅ JWT authentication validation
+- ✅ File upload and download testing
+- ✅ Folder creation and nested folder testing
+- ✅ File sharing and permission validation
+- ✅ File version control testing
+- ✅ Multiple simultaneous user access testing
+- ✅ CloudFront HTTPS delivery testing
+- ✅ AWS S3 file storage validation
+- ✅ API endpoint testing using Postman
+
+### Test File Types
+
+- PDF files
+- Images (JPG, PNG)
+- ZIP archives
+- Text files
+- Large file uploads
+
+### Performance Monitoring
+
+- PM2 used for backend process monitoring
+- AWS CloudWatch used for EC2 and RDS monitoring
+- CloudFront caching used for frontend performance optimization
+
+---
+
+## 📊 Dataset Information
+
+### Dataset Name
+
+Sample File Metadata Dataset
+
+### Dataset Sources
+
+- Synthetic test data
+- Kaggle datasets for cloud storage simulations
+
+### Dataset Links
+
+- https://www.kaggle.com/datasets/anikannal/drive-file-data
+- https://www.kaggle.com/datasets/ashokpant/cloud-storage-dataset
+
+### Usage
+
+The datasets were used for:
+
+- Testing file metadata handling
+- Simulating cloud storage records
+- Performance and scalability testing
+
+---
+
+## �🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
 
